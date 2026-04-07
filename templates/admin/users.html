@@ -1,0 +1,33 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin - Usuarios{% endblock %}
+
+{% block admin_content %}
+<section class="admin-section">
+    <div class="admin-section-header">
+        <h2 class="admin-section-title">Todos os Usuarios</h2>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Voltar ao Painel</a>
+    </div>
+
+    <div class="users-table">
+        <div class="users-header">
+            <span>#</span>
+            <span>Usuario</span>
+            <span>Email</span>
+            <span>Role</span>
+            <span>Status</span>
+            <span>Data</span>
+        </div>
+        {% for user in users %}
+        <div class="users-row {% if not user.is_approved %}users-row-pending{% endif %}">
+            <span>{{ user.id }}</span>
+            <span>{{ user.username }}</span>
+            <span>{{ user.email }}</span>
+            <span><span class="badge {% if user.role == 'admin' %}badge-admin{% else %}badge-user{% endif %}">{{ user.role|upper }}</span></span>
+            <span><span class="badge {% if user.is_approved %}badge-approved{% else %}badge-pending{% endif %}">{{ 'Aprovado' if user.is_approved else 'Pendente' }}</span></span>
+            <span>{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else '-' }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

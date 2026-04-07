@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}{{ todo_list.title }} - Pink Urban Lists{% endblock %}
+
+{% block content %}
+<div class="list-page">
+    <div class="list-header">
+        <div class="list-title-area">
+            <h1 class="list-title" id="listTitleDisplay">{{ todo_list.title }}</h1>
+            {% if is_owner %}
+            <button class="btn-edit-title" id="editTitleBtn" title="Editar titulo">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path stroke="currentColor" stroke-width="2" d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            {% endif %}
+        </div>
+
+        <div class="list-meta">
+            <span class="list-date">Criada em {{ todo_list.created_at.strftime('%d/%m/%Y') }}</span>
+            <div class="list-share">
+                <button class="btn btn-outline" id="copyLinkBtn" onclick="copyListLink()">
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path stroke="currentColor" stroke-width="2" d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                    Copiar Link
+                </button>
+                <span id="copyFeedback" class="copy-feedback">Link copiado!</span>
+            </div>
+        </div>
+    </div>
+
+    {% if is_owner %}
+    <div class="add-item-area">
+        <div class="add-item-form">
+            <input type="text" class="form-input add-item-input" id="newItemInput" placeholder="Digite um novo item..." autocomplete="off">
+            <button class="btn btn-primary" id="addItemBtn">+ Adicionar</button>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="items-list" id="itemsList">
+        <div class="loading-items">
+            <div class="spinner"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const LIST_ID = {{ todo_list.id }};
+const IS_OWNER = {{ is_owner|lower }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadItems();
+
+    if (IS_OWNER) {
+        document.getElementById('addItemBtn').addEventListener('click', addItem);
+        document.getElementById('newItemInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') addItem();
+        });
+
+        // Edit title
+        document.getElementById('editTitleBtn').addEventListener('click', function() {
+            const titleDisplay = document.getElementById('listTitleDisplay');
+            const currentTitle = titleDisplay.textContent;
+            const newTitle = prompt('Novo titulo:', currentTitle);
+            if (newTitle && newTitle.trim() && newTitle !== currentTitle) {
+                fetch(`/api/list/${LIST_ID}/title`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title: newTitle.trim() })
+                }).then(res => res.json()).then(data => {
+                    if (data.message) {
+                        titleDisplay.textContent = newTitle.trim();
+                    }
+                });
+            }
+        });
+    }
+});
+
+async function loadItems() {
+    const container = document.getElementById('itemsList');
+
+    try {
+        const res = await fetch(`/api/list/${LIST_ID}/items`);
+
+        if (res.status === 403) {
+            container.innerHTML = '<div class="empty-state"><p>Acesso restrito a esta lista.</p></div>';
+            return;
+        }
+
+        const items = await res.json();
+        container.innerHTML = '';
+
+        if (items.length === 0) {
+            container.innerHTML = '<div class="empty-state"><p>Nenhum item nesta lista ainda.</p></div>';
+            return;
+        }
+
+        items.forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'todo-item';
+            if (item.done) el.classList.add('todo-item-done');
+            el.dataset.id = item.id;
+
+            el.innerHTML = `
+                <button class="todo-check ${item.done ? 'checked' : ''}" onclick="toggleItem(${item.id}, this)">
+                    ${item.done ? '<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="3" d="M5 12l5 5L20 7"/></svg>' : ''}
+                </button>
+                <span class="todo-text">${escapeHtml(item.text)}</span>
+                ${IS_OWNER ? `<button class="todo-delete" onclick="deleteItem(${item.id}, this)" title="Remover">&times;</button>` : ''}
+            `;
+
+            container.appendChild(el);
+        });
+    } catch (err) {
+        container.innerHTML = '<div class="empty-state"><p>Erro ao carregar itens.</p></div>';
+    }
+}
+
+async function addItem() {
+    const input = document.getElementById('newItemInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    try {
+        const res = await fetch(`/api/list/${LIST_ID}/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+
+        if (res.ok) {
+            input.value = '';
+            loadItems();
+        }
+    } catch (err) {
+        console.error('Erro ao adicionar item:', err);
+    }
+}
+
+async function toggleItem(itemId, btn) {
+    try {
+        const res = await fetch(`/api/item/${itemId}/toggle`, { method: 'POST' });
+        if (res.ok) loadItems();
+    } catch (err) {
+        console.error('Erro ao alternar item:', err);
+    }
+}
+
+async function deleteItem(itemId, btn) {
+    try {
+        const res = await fetch(`/api/item/${itemId}`, { method: 'DELETE' });
+        if (res.ok) loadItems();
+    } catch (err) {
+        console.error('Erro ao remover item:', err);
+    }
+}
+
+function copyListLink() {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+        const fb = document.getElementById('copyFeedback');
+        fb.classList.add('show');
+        setTimeout(() => fb.classList.remove('show'), 2000);
+    });
+}
+</script>
+{% endblock %}

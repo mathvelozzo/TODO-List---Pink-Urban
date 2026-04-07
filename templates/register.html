@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro - Pink Urban Lists{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>Crie sua conta</h1>
+            <p>Cadastre-se para acessar o Pink Urban Lists</p>
+        </div>
+
+        <form class="auth-form" id="registerForm">
+            <div class="form-group">
+                <label class="form-label" for="username">Usuario</label>
+                <input type="text" class="form-input" id="username" name="username" required autocomplete="username" placeholder="Escolha um usuario" minlength="3">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="email">Email</label>
+                <input type="email" class="form-input" id="email" name="email" required autocomplete="email" placeholder="seu@email.com">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Senha</label>
+                <input type="password" class="form-input" id="password" name="password" required autocomplete="new-password" placeholder="Minimo 6 caracteres" minlength="6">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="confirm_password">Confirmar Senha</label>
+                <input type="password" class="form-input" id="confirm_password" name="confirm_password" required autocomplete="new-password" placeholder="Repita a senha">
+            </div>
+
+            <div class="error-text" id="registerErrors"></div>
+            <div class="success-text" id="registerSuccess"></div>
+
+            <button type="submit" class="btn btn-primary btn-full" id="registerBtn">Cadastrar</button>
+        </form>
+
+        <p class="auth-footer-text">
+            Ja tem conta? <a href="{{ url_for('auth.login') }}" class="link">Entrar</a>
+        </p>
+    </div>
+</div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm_password').value;
+    const errorEl = document.getElementById('registerErrors');
+    const successEl = document.getElementById('registerSuccess');
+    const btn = document.getElementById('registerBtn');
+
+    errorEl.textContent = '';
+    successEl.textContent = '';
+
+    btn.textContent = 'Cadastrando...';
+    btn.disabled = true;
+
+    try {
+        const res = await fetch('/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password, confirm_password: confirm })
+        });
+
+        const data = await res.json();
+
+        if (res.ok || res.status === 201) {
+            successEl.textContent = data.message || 'Cadastro realizado! Aguarde aprovacao do administrador.';
+            setTimeout(() => {
+                window.location.href = '/auth/login';
+            }, 2000);
+        } else {
+            if (data.errors) {
+                errorEl.textContent = data.errors.join(' ');
+            } else {
+                errorEl.textContent = data.error || 'Erro ao cadastrar.';
+            }
+            btn.textContent = 'Cadastrar';
+            btn.disabled = false;
+        }
+    } catch (err) {
+        errorEl.textContent = 'Erro de conexao. Tente novamente.';
+        btn.textContent = 'Cadastrar';
+        btn.disabled = false;
+    }
+});
+</script>
+{% endblock %}

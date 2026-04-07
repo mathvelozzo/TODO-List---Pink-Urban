@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Pink Urban Lists - To-do lists simples e compartilháveis{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-badge">Novo - Pink Urban Lists beta!</div>
+    <h1 class="hero-title">Listas simples que voc pode <span class="highlight">compartilhar</span></h1>
+    <p class="hero-subtitle">Crie, organize e compartilhe suas listas de tarefas. Sem complicacao.</p>
+
+    {% if current_user.is_authenticated %}
+        <div class="hero-actions">
+            <a href="#" class="btn btn-primary" id="createListBtn">+ Criar Nova Lista</a>
+            <a href="#" class="btn btn-secondary" onclick="loadMyLists();return false;">Ver Minhas Listas</a>
+        </div>
+    {% else %}
+        <div class="hero-actions">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Comecar Agora</a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">Entrar</a>
+        </div>
+    {% endif %}
+</section>
+
+<section class="features">
+    <div class="feature-card">
+        <div class="feature-icon">
+            <svg width="32" height="32" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/></svg>
+        </div>
+        <h3>Rapido de criar</h3>
+        <p>Crie sua lista em segundos. Cadastre-se e comece a usar imediatamente.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">
+            <svg width="32" height="32" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M4 12h16m-7-7l7 7-7 7"/></svg>
+        </div>
+        <h3>Compartilhe facilmente</h3>
+        <p>Compartilhe suas listas com um simples link. Sem permissoes complicadas.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">
+            <svg width="32" height="32" fill="none" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" d="M8 7h8M8 11h8M8 15h4"/></svg>
+        </div>
+        <h3>Acesso de qualquer lugar</h3>
+        <p>Acesse suas listas de qualquer dispositivo, a qualquer momento.</p>
+    </div>
+</section>
+
+{% if current_user.is_authenticated %}
+<section class="my-lists-section" id="myListsSection">
+    <h2 class="section-title">Minhas Listas</h2>
+    <div class="lists-grid" id="listsGrid">
+        <div class="empty-state" id="emptyLists">
+            <p>Nenhuma lista criada ainda.</p>
+            <p style="color: #9ca3af;">Clique em "Criar Nova Lista" para comecar!</p>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<div class="modal-overlay" id="createListModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Criar Nova Lista</h3>
+            <button class="modal-close" id="closeModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <label class="form-label">Titulo da Lista</label>
+            <input type="text" class="form-input" id="listTitle" placeholder="Ex: Lista de compras...">
+            <div class="error-text" id="listError"></div>
+            <div class="success-text" id="listSuccess"></div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="cancelModal">Cancelar</button>
+                <button class="btn btn-primary" id="confirmCreate">Criar Lista</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{% if current_user.is_authenticated %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('createListModal');
+    const createBtn = document.getElementById('createListBtn');
+    const closeBtn = document.getElementById('closeModal');
+    const cancelBtn = document.getElementById('cancelModal');
+    const confirmBtn = document.getElementById('confirmCreate');
+    const titleInput = document.getElementById('listTitle');
+    const errorEl = document.getElementById('listError');
+    const successEl = document.getElementById('listSuccess');
+
+    createBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        modal.classList.add('modal-open');
+        errorEl.textContent = '';
+        titleInput.value = '';
+    });
+
+    function closeModal() {
+        modal.classList.remove('modal-open');
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeModal();
+    });
+
+    confirmBtn.addEventListener('click', async function() {
+        const title = titleInput.value.trim();
+        if (!title) {
+            errorEl.textContent = 'Titulo e obrigatorio.';
+            return;
+        }
+        errorEl.textContent = '';
+
+        try {
+            confirmBtn.textContent = 'Criando...';
+            confirmBtn.disabled = true;
+
+            const res = await fetch('/create-list', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: title })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                successEl.textContent = 'Lista criada com sucesso!';
+                setTimeout(() => {
+                    closeModal();
+                    successEl.textContent = '';
+                    confirmBtn.textContent = 'Criar Lista';
+                    confirmBtn.disabled = false;
+                    loadMyLists();
+                }, 800);
+            } else {
+                errorEl.textContent = data.error || 'Erro ao criar lista.';
+                confirmBtn.textContent = 'Criar Lista';
+                confirmBtn.disabled = false;
+            }
+        } catch (err) {
+            errorEl.textContent = 'Erro de conexao. Tente novamente.';
+            confirmBtn.textContent = 'Criar Lista';
+            confirmBtn.disabled = false;
+        }
+    });
+
+    titleInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') confirmBtn.click();
+    });
+});
+
+async function loadMyLists() {
+    const grid = document.getElementById('listsGrid');
+    const empty = document.getElementById('emptyLists');
+
+    if (!grid) return;
+
+    try {
+        const res = await fetch('/api/lists');
+        const lists = await res.json();
+
+        if (lists.length === 0) {
+            empty.style.display = 'flex';
+            return;
+        }
+
+        empty.style.display = 'none';
+        grid.innerHTML = lists.map(list => `
+            <div class="list-card">
+                <div class="list-card-header">
+                    <span class="list-card-title">${escapeHtml(list.title)}</span>
+                    ${list.is_public ? '<span class="badge-public">Publica</span>' : '<span class="badge-private">Privada</span>'}
+                </div>
+                <div class="list-card-date">Criada em ${list.created_at}</div>
+                <div class="list-card-actions">
+                    <a href="/list/${list.slug}" class="btn-list-action">Abrir</a>
+                    <button class="btn-list-delete" onclick="deleteList(${list.id}, '${list.slug}')">&times; Excluir</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error('Erro ao carregar listas:', err);
+    }
+}
+
+async function deleteList(listId) {
+    if (!confirm('Tem certeza que deseja excluir esta lista?')) return;
+
+    try {
+        const res = await fetch(`/api/list/${listId}/delete`, { method: 'DELETE' });
+        if (res.ok) {
+            loadMyLists();
+        } else {
+            alert('Erro ao excluir lista.');
+        }
+    } catch (err) {
+        alert('Erro de conexao.');
+    }
+}
+</script>
+{% endif %}
+{% endblock %}

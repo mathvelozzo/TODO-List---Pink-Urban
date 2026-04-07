@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pink Urban Lists{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('main.index') }}" class="nav-logo">
+                <span class="logo-icon">PU</span>
+                <span class="logo-text">Pink Urban Lists</span>
+            </a>
+            <div class="nav-links">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('main.index') }}" class="nav-link">Meus Lists</a>
+                    {% if current_user.role == 'admin' %}
+                        <a href="{{ url_for('admin.dashboard') }}" class="nav-link nav-admin">Admin</a>
+                    {% endif %}
+                    <div class="nav-user">
+                        <span class="user-avatar">{{ current_user.username[0]|upper }}</span>
+                        <span class="user-name">{{ current_user.username }}</span>
+                    </div>
+                    <a href="{{ url_for('auth.logout') }}" class="nav-btn nav-logout">Sair</a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="nav-btn nav-login">Entrar</a>
+                    <a href="{{ url_for('auth.register') }}" class="nav-btn nav-register">Cadastrar</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }} flash-fade-in">
+                            {{ message }}
+                            <button class="flash-close" onclick="this.parentElement.remove()">x</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p>(c) 2026 Pink Urban Lists. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

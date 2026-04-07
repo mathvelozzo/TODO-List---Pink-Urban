@@ -1,0 +1,61 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin - Painel{% endblock %}
+
+{% block admin_content %}
+<div class="admin-stats">
+    <div class="stat-card">
+        <span class="stat-number">{{ total_users }}</span>
+        <span class="stat-label">Usuarios Total</span>
+    </div>
+    <div class="stat-card stat-warning">
+        <span class="stat-number">{{ pending_users|length }}</span>
+        <span class="stat-label">Pendentes</span>
+    </div>
+    <div class="stat-card stat-info">
+        <span class="stat-number">{{ total_lists }}</span>
+        <span class="stat-label">Listas Criadas</span>
+    </div>
+</div>
+
+{% if pending_users %}
+<section class="admin-section">
+    <h2 class="admin-section-title">Usuarios Pendentes de Aprovacao</h2>
+    <div class="pending-table">
+        <div class="pending-header">
+            <span>Usuario</span>
+            <span>Email</span>
+            <span>Data</span>
+            <span>Acoes</span>
+        </div>
+        {% for user in pending_users %}
+        <div class="pending-row">
+            <span>{{ user.username }}</span>
+            <span>{{ user.email }}</span>
+            <span>{{ user.created_at.strftime('%d/%m/%Y %H:%M') if user.created_at else '-' }}</span>
+            <div class="pending-actions">
+                <form method="POST" action="{{ url_for('admin.approve_user', user_id=user.id) }}" style="display:inline">
+                    <button type="submit" class="btn btn-approve">Aprovar</button>
+                </form>
+                <form method="POST" action="{{ url_for('admin.reject_user', user_id=user.id) }}" style="display:inline">
+                    <button type="submit" class="btn btn-reject" onclick="return confirm('Rejeitar e remover este usuario?')">Rejeitar</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% else %}
+<section class="admin-section">
+    <div class="empty-admin">
+        <svg width="48" height="48" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" d="M8 12h8"/></svg>
+        <h3>Nenhum usuario pendente</h3>
+        <p>Todos os usuarios foram processados.</p>
+    </div>
+</section>
+{% endif %}
+
+<div class="admin-links">
+    <a href="{{ url_for('admin.all_users') }}" class="btn btn-secondary">Ver Todos os Usuarios</a>
+</div>
+{% endblock %}
