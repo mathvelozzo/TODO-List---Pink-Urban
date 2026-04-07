@@ -968,6 +968,7 @@ a:hover {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    min-height: 10px;
 }
 
 .todo-item {
@@ -980,6 +981,103 @@ a:hover {
     border-radius: var(--pu-radius-sm);
     transition: all var(--transition-fast);
     animation: itemSlide 0.25s var(--transition-smooth);
+    cursor: grab;
+}
+
+
+.todo-item.dragging {
+    opacity: 0.4;
+    border-color: var(--pu-pink);
+    background: var(--pu-pink-bg);
+    transform: rotate(1deg) scale(0.98);
+    box-shadow: var(--pu-shadow-lg);
+    z-index: 10;
+}
+
+.todo-item.drag-above {
+    box-shadow: 0 -2px 0 0 var(--pu-pink);
+    border-color: var(--pu-pink);
+}
+
+.todo-item.drag-below {
+    box-shadow: 0 2px 0 0 var(--pu-pink);
+    border-color: var(--pu-pink);
+}
+
+.drag-handle {
+    color: var(--pu-gray-light);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: grab;
+    user-select: none;
+    flex-shrink: 0;
+    padding: 0 4px;
+    transition: color var(--transition-fast);
+}
+
+.drag-handle:hover {
+    color: var(--pu-pink);
+}
+
+/* ========== REORDER ARROWS ========== */
+.reorder-arrows {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex-shrink: 0;
+}
+
+.arrow-btn {
+    background: var(--pu-bg);
+    border: 1px solid var(--pu-border);
+    border-radius: 4px;
+    width: 26px;
+    height: 14px;
+    font-size: 9px;
+    font-family: monospace;
+    color: var(--pu-gray);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all var(--transition-fast);
+}
+
+.arrow-btn:hover:not(:disabled) {
+    background: var(--pu-pink-bg);
+    border-color: var(--pu-pink);
+    color: var(--pu-pink);
+}
+
+.arrow-btn:disabled {
+    opacity: 0.25;
+    cursor: default;
+}
+
+.todo-date-span {
+    font-size: 11px;
+    color: var(--pu-gray);
+    padding: 0 4px;
+    flex-shrink: 0;
+}
+
+.todo-date-set {
+    width: 18px;
+    height: 18px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    opacity: 0.4;
+    transition: opacity var(--transition-fast);
+    flex-shrink: 0;
+    border-radius: 4px;
+}
+
+.todo-date-set:hover {
+    opacity: 1;
+    background: var(--pu-bg);
 }
 
 @keyframes itemSlide {

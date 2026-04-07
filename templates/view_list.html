@@ -8,16 +8,15 @@
         <div class="list-title-area">
             <h1 class="list-title" id="listTitleDisplay">{{ todo_list.title }}</h1>
             {% if is_owner %}
-            <button class="btn-edit-title" id="editTitleBtn" title="Editar titulo">
+            <button class="btn-edit-title" id="editTitleBtn">
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path stroke="currentColor" stroke-width="2" d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </button>
             {% endif %}
         </div>
-
         <div class="list-meta">
             <span class="list-date">Criada em {{ todo_list.created_at.strftime('%d/%m/%Y') }}</span>
             <div class="list-share">
-                <button class="btn btn-outline" id="copyLinkBtn" onclick="copyListLink()">
+                <button class="btn btn-outline" onclick="copyListLink()">
                     <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path stroke="currentColor" stroke-width="2" d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
                     Copiar Link
                 </button>
@@ -30,16 +29,15 @@
     <div class="add-item-area">
         <div class="add-item-form">
             <input type="text" class="form-input add-item-input" id="newItemInput" placeholder="Digite um novo item..." autocomplete="off">
-            <button class="btn btn-outline btn-due-toggle" id="dueToggleBtn" title="Definir data">
+            <button class="btn btn-outline btn-due-toggle" id="dueToggleBtn">
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" d="M16 2v4M8 2v4M3 10h18"/></svg>
             </button>
             <button class="btn btn-primary" id="addItemBtn">+ Adicionar</button>
         </div>
-
         <div class="date-picker-area" id="datePickerArea" style="display:none">
             <label class="form-label">Data de vencimento</label>
             <div class="date-picker-wrapper">
-                <input type="date" class="form-input" id="dueDatePicker" min="">
+                <input type="date" class="form-input" id="dueDatePicker">
                 <button class="btn btn-sm btn-secondary" id="clearDateBtn">Limpar</button>
                 <button class="btn btn-sm btn-secondary" id="todayBtn">Hoje</button>
                 <button class="btn btn-sm btn-secondary" id="tomorrowBtn">Amanha</button>
@@ -52,14 +50,12 @@
     <div class="items-container">
         <h3 class="items-section-title">Todos os itens</h3>
         <div class="items-list" id="itemsList">
-            <div class="loading-items">
-                <div class="spinner"></div>
-            </div>
+            <div class="loading-items"><div class="spinner"></div></div>
         </div>
     </div>
 </div>
 
-<!-- Inline date picker for existing items -->
+{% if is_owner %}
 <div class="date-modal-overlay" id="dateModal">
     <div class="date-modal">
         <h3>Definir data</h3>
@@ -69,7 +65,7 @@
             <button class="date-quick-btn" data-action="next-week">Prox. Semana</button>
         </div>
         <div class="date-modal-custom">
-            <input type="date" class="form-input" id="modalDatePicker" min="">
+            <input type="date" class="form-input" id="modalDatePicker">
             <div class="date-modal-buttons">
                 <button class="btn btn-sm btn-secondary" id="modalClearDate">Limpar</button>
                 <button class="btn btn-sm btn-primary" id="modalConfirmDate">Confirmar</button>
@@ -77,282 +73,271 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-const LIST_ID = {{ todo_list.id }};
-const IS_OWNER = {{ is_owner|lower }};
-
-let selectedDueDate = null;
-let editingItemId = null;
+var LIST_ID = {{ todo_list.id }};
+var IS_OWNER = {{ is_owner|lower }};
+var selectedDueDate = null;
+var editingItemId = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     loadItems();
+    if (!IS_OWNER) return;
 
-    if (IS_OWNER) {
-        document.getElementById('addItemBtn').addEventListener('click', addItem);
-        document.getElementById('newItemInput').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addItem(); }
-        });
+    document.getElementById('addItemBtn').addEventListener('click', addItem);
+    document.getElementById('newItemInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addItem(); }
+    });
 
-        // Due date toggle
-        const pickerArea = document.getElementById('datePickerArea');
-        const dateInput = document.getElementById('dueDatePicker');
-        const pickerBtn = document.getElementById('dueToggleBtn');
+    var pickerArea = document.getElementById('datePickerArea');
+    var dateInput = document.getElementById('dueDatePicker');
+    var pickerBtn = document.getElementById('dueToggleBtn');
+    var today = new Date();
+    dateInput.min = formatDateISO(today);
 
-        pickerBtn.addEventListener('click', function() {
-            if (pickerArea.style.display === 'none') {
-                pickerArea.style.display = 'block';
-                dateInput.focus();
-                pickerBtn.style.background = 'var(--pu-pink-bg)';
-                pickerBtn.style.borderColor = 'var(--pu-pink)';
-            } else {
-                pickerArea.style.display = 'none';
-                selectedDueDate = null;
-                dateInput.value = '';
-                pickerBtn.style.background = '';
-                pickerBtn.style.borderColor = '';
-            }
-        });
-
-        dateInput.addEventListener('change', function() {
-            selectedDueDate = dateInput.value;
-        });
-
-        document.getElementById('clearDateBtn').addEventListener('click', function() {
+    pickerBtn.addEventListener('click', function() {
+        if (pickerArea.style.display === 'none') {
+            pickerArea.style.display = 'block';
+            pickerBtn.style.background = 'var(--pu-pink-bg)';
+            pickerBtn.style.borderColor = 'var(--pu-pink)';
+        } else {
+            pickerArea.style.display = 'none';
             selectedDueDate = null;
             dateInput.value = '';
-        });
+            pickerBtn.style.background = '';
+            pickerBtn.style.borderColor = '';
+        }
+    });
+    dateInput.addEventListener('change', function() { selectedDueDate = dateInput.value; });
+    document.getElementById('clearDateBtn').addEventListener('click', function() { selectedDueDate = null; dateInput.value = ''; });
+    document.getElementById('todayBtn').addEventListener('click', function() { selectedDueDate = formatDateISO(new Date()); dateInput.value = selectedDueDate; });
+    document.getElementById('tomorrowBtn').addEventListener('click', function() { var t = new Date(); t.setDate(t.getDate()+1); selectedDueDate = formatDateISO(t); dateInput.value = selectedDueDate; });
+    document.getElementById('nextWeekBtn').addEventListener('click', function() { var n = new Date(); n.setDate(n.getDate()+7); selectedDueDate = formatDateISO(n); dateInput.value = selectedDueDate; });
 
-        const today = new Date();
-        dateInput.min = formatDateISO(today);
-        document.getElementById('modalDatePicker').min = formatDateISO(today);
+    document.getElementById('editTitleBtn').addEventListener('click', function() {
+        var cur = document.getElementById('listTitleDisplay').textContent;
+        var nw = prompt('Novo titulo:', cur);
+        if (nw && nw.trim() && nw !== cur) {
+            fetch('/api/list/' + LIST_ID + '/title', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({title:nw.trim()}) })
+            .then(function(r){ return r.json(); }).then(function(d){ if(d.message) document.getElementById('listTitleDisplay').textContent = nw.trim(); });
+        }
+    });
 
-        document.getElementById('todayBtn').addEventListener('click', function() {
-            selectedDueDate = formatDateISO(today);
-            dateInput.value = selectedDueDate;
-            updateDateButton(today);
-        });
-
-        document.getElementById('tomorrowBtn').addEventListener('click', function() {
-            const tomorrow = new Date(today);
-            tomorrow.setDate(today.getDate() + 1);
-            selectedDueDate = formatDateISO(tomorrow);
-            dateInput.value = selectedDueDate;
-            updateDateButton(tomorrow);
-        });
-
-        document.getElementById('nextWeekBtn').addEventListener('click', function() {
-            const next = new Date(today);
-            next.setDate(today.getDate() + 7);
-            selectedDueDate = formatDateISO(next);
-            dateInput.value = selectedDueDate;
-            updateDateButton(next);
-        });
-
-        // Edit title
-        document.getElementById('editTitleBtn').addEventListener('click', function() {
-            const currentTitle = document.getElementById('listTitleDisplay').textContent;
-            const newTitle = prompt('Novo titulo:', currentTitle);
-            if (newTitle && newTitle.trim() && newTitle !== currentTitle) {
-                fetch(`/api/list/${LIST_ID}/title`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title: newTitle.trim() })
-                }).then(res => res.json()).then(data => {
-                    if (data.message) document.getElementById('listTitleDisplay').textContent = newTitle.trim();
-                });
-            }
-        });
-
-        // Date modal for existing items
-        const dateModal = document.getElementById('dateModal');
-
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.todo-due-btn')) {
-                editingItemId = parseInt(e.target.closest('.todo-due-btn').dataset.id);
-                dateModal.classList.add('date-modal-open');
-            }
-        });
-
-        function closeDateModal() {
-            dateModal.classList.remove('date-modal-open');
+    document.addEventListener('click', function(e) {
+        if (e.target.closest && e.target.closest('.todo-due-btn')) {
+            var id = e.target.closest('.todo-due-btn').getAttribute('data-id');
+            editingItemId = parseInt(id);
+            document.getElementById('dateModal').classList.add('date-modal-open');
+        }
+        if (e.target.id === 'dateModal') {
+            document.getElementById('dateModal').classList.remove('date-modal-open');
             editingItemId = null;
         }
+    });
 
-        dateModal.addEventListener('click', function(e) {
-            if (e.target === dateModal) closeDateModal();
-        });
+    document.getElementById('modalConfirmDate').addEventListener('click', function() {
+        var val = document.getElementById('modalDatePicker').value;
+        updateItemDueDate(editingItemId, val || null);
+        document.getElementById('dateModal').classList.remove('date-modal-open');
+        editingItemId = null;
+    });
+    document.getElementById('modalClearDate').addEventListener('click', function() {
+        updateItemDueDate(editingItemId, null);
+        document.getElementById('dateModal').classList.remove('date-modal-open');
+        editingItemId = null;
+    });
 
-        document.getElementById('modalConfirmDate').addEventListener('click', async function() {
-            const val = document.getElementById('modalDatePicker').value;
-            await updateItemDueDate(editingItemId, val || null);
-            closeDateModal();
+    document.querySelectorAll('.date-quick-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var action = this.getAttribute('data-action');
+            var now = new Date();
+            if (action === 'tomorrow') now.setDate(now.getDate()+1);
+            if (action === 'next-week') now.setDate(now.getDate()+7);
+            document.getElementById('modalDatePicker').value = formatDateISO(now);
         });
-
-        document.getElementById('modalClearDate').addEventListener('click', async function() {
-            await updateItemDueDate(editingItemId, null);
-            closeDateModal();
-        });
-
-        document.querySelectorAll('.date-quick-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const action = this.dataset.action;
-                const now = new Date();
-                if (action === 'today') now.setDate(now.getDate());
-                else if (action === 'tomorrow') now.setDate(now.getDate() + 1);
-                else if (action === 'next-week') now.setDate(now.getDate() + 7);
-                document.getElementById('modalDatePicker').value = formatDateISO(now);
-            });
-        });
-    }
+    });
 });
 
-function updateDateButton(dt) {
-    const btn = document.getElementById('dueToggleBtn');
-    btn.title = 'Vencimento: ' + formatDateBR(dt);
-}
-
-async function addItem() {
-    const input = document.getElementById('newItemInput');
-    const text = input.value.trim();
+function addItem() {
+    var input = document.getElementById('newItemInput');
+    var text = input.value.trim();
     if (!text) return;
-
-    try {
-        const body = { text: text };
-        if (selectedDueDate) body.due_date = selectedDueDate;
-
-        const res = await fetch(`/api/list/${LIST_ID}/add`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-
-        if (res.ok) {
-            input.value = '';
-            selectedDueDate = null;
-            document.getElementById('dueDatePicker').value = '';
-            loadItems();
-        }
-    } catch (err) {
-        console.error('Erro ao adicionar item:', err);
-    }
+    var body = { text: text };
+    if (selectedDueDate) body.due_date = selectedDueDate;
+    fetch('/api/list/' + LIST_ID + '/add', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
+    .then(function(r){ if(r.ok){ input.value=''; selectedDueDate=null; document.getElementById('dueDatePicker').value=''; loadItems(); } });
 }
 
-async function toggleItem(itemId, btn) {
-    try {
-        const res = await fetch(`/api/item/${itemId}/toggle`, { method: 'POST' });
-        if (res.ok) loadItems();
-    } catch (err) {
-        console.error('Erro ao alternar item:', err);
-    }
+function toggleItem(id) {
+    fetch('/api/item/' + id + '/toggle', { method:'POST' }).then(function(r){ if(r.ok) loadItems(); });
 }
 
-async function deleteItem(itemId, btn) {
-    try {
-        const res = await fetch(`/api/item/${itemId}`, { method: 'DELETE' });
-        if (res.ok) loadItems();
-    } catch (err) {
-        console.error('Erro ao remover item:', err);
-    }
+function deleteItem(id) {
+    fetch('/api/item/' + id, { method:'DELETE' }).then(function(r){ if(r.ok) loadItems(); });
 }
 
-async function updateItemDueDate(itemId, dueDate) {
-    try {
-        await fetch(`/api/item/${itemId}/due-date`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ due_date: dueDate })
-        });
-        loadItems();
-    } catch (err) {
-        console.error('Erro ao atualizar data:', err);
-    }
-}
-
-async function loadItems() {
-    const container = document.getElementById('itemsList');
-
-    try {
-        const res = await fetch(`/api/list/${LIST_ID}/items`);
-
-        if (res.status === 403) {
-            container.innerHTML = '<div class="empty-state"><p>Acesso restrito a esta lista.</p></div>';
-            return;
-        }
-
-        const items = await res.json();
-        container.innerHTML = '';
-
-        if (items.length === 0) {
-            container.innerHTML = '<div class="empty-state"><p>Nenhum item nesta lista ainda.</p></div>';
-            return;
-        }
-
-        // Separate overdue/in-progress
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        items.forEach(item => {
-            let itemDueDate = null;
-            if (item.due_date) {
-                const parts = item.due_date.split('/');
-                itemDueDate = new Date(parts[2], parts[1] - 1, parts[0]);
-            }
-
-            let statusClass = '';
-            let statusLabel = '';
-            if (itemDueDate && !item.done) {
-                itemDueDate.setHours(0, 0, 0, 0);
-                if (itemDueDate < today) { statusClass = 'todo-overdue'; statusLabel = 'Atrasado'; }
-                else if (itemDueDate.getTime() === today.getTime()) { statusClass = 'todo-today'; statusLabel = 'Hoje'; }
-                else { statusLabel = item.due_date; }
-            }
-
-            const el = document.createElement('div');
-            el.className = `todo-item ${statusClass}`;
-            if (item.done) el.classList.add('todo-item-done');
-            el.dataset.id = item.id;
-
-            const dateHtml = IS_OWNER ? `<button class="todo-due-btn" data-id="${item.id}" title="${statusLabel || 'Sem data'}">${statusLabel || 'Sem data'}</button>` : (statusLabel ? `<span class="todo-date-label">${statusLabel}</span>` : '');
-
-            el.innerHTML = `
-                <button class="todo-check ${item.done ? 'checked' : ''}" onclick="toggleItem(${item.id}, this)">
-                    ${item.done ? '<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="3" d="M5 12l5 5L20 7"/></svg>' : ''}
-                </button>
-                <span class="todo-text">${escapeHtml(item.text)}</span>
-                ${dateHtml}
-                ${IS_OWNER ? `<button class="todo-delete" onclick="deleteItem(${item.id}, this)" title="Remover">&times;</button>` : ''}
-            `;
-
-            container.appendChild(el);
-        });
-    } catch (err) {
-        container.innerHTML = '<div class="empty-state"><p>Erro ao carregar itens.</p></div>';
-    }
+function updateItemDueDate(id, dueDate) {
+    fetch('/api/item/' + id + '/due-date', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({due_date:dueDate}) }).then(function(){ loadItems(); });
 }
 
 function copyListLink() {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-        const fb = document.getElementById('copyFeedback');
-        fb.classList.add('show');
-        setTimeout(() => fb.classList.remove('show'), 2000);
+    navigator.clipboard.writeText(window.location.href).then(function() {
+        var fb = document.getElementById('copyFeedback');
+        fb.className = 'copy-feedback show';
+        setTimeout(function(){ fb.className = 'copy-feedback'; }, 2000);
+    });
+}
+
+var allItems = [];
+
+function loadItems() {
+    var c = document.getElementById('itemsList');
+    fetch('/api/list/' + LIST_ID + '/items')
+    .then(function(r){
+        if (r.status === 403){ c.innerHTML='<div class="empty-state"><p>Acesso restrito.</p></div>'; return null; }
+        return r.json();
+    })
+    .then(function(items){
+        if (!items) return;
+        allItems = items;
+        c.innerHTML = '';
+
+        if (items.length === 0) {
+            c.innerHTML = '<div class="empty-state"><p>Nenhum item nesta lista ainda.</p></div>';
+            return;
+        }
+
+        var today = new Date(); today.setHours(0,0,0,0);
+
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var el = document.createElement('div');
+            el.className = 'todo-item' + (item.done ? ' todo-item-done' : '');
+            el.setAttribute('data-id', item.id);
+            el.setAttribute('draggable', 'true');
+            el.style.cursor = 'grab';
+
+            var sc = '', sl = '';
+            if (item.due_date) {
+                var p = item.due_date.split('/'), d = new Date(p[2], p[1]-1, p[0]);
+                if (d.getTime() < today.getTime() && !item.done) { sc = ' todo-overdue'; sl = 'Atrasado'; }
+                else if (d.getTime() === today.getTime() && !item.done) { sc = ' todo-today'; sl = 'Hoje'; }
+                else { sl = item.due_date; }
+            }
+            el.className += sc;
+
+            // REORDER BUTTONS with arrows
+            var reorderHtml =
+                '<span class="drag-handle">⋮⋮</span>';
+
+            var checkHtml = '<span class="todo-check ' + (item.done ? 'checked' : '') + '" onclick="toggleItem(' + items[i].id + ')">' +
+                (item.done ? '<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="3" d="M5 12l5 5L20 7"/></svg>' : '') +
+                '</span>';
+
+            el.innerHTML = reorderHtml + checkHtml +
+                '<span class="todo-text">' + escapeHtml(item.text) + '</span>' +
+                '<span class="todo-date-span">'+(sl||'')+'</span>' +
+                '<button class="todo-date-set" data-id="'+item.id+'"></button>' +
+                '<button class="todo-delete" onclick="deleteItem('+item.id+')">&times;</button>';
+
+            c.appendChild(el);
+        }
+    })
+    .catch(function(){});
+}
+
+function moveItem(id, dir) {
+    var idx = -1;
+    for (var i = 0; i < allItems.length; i++) {
+        if (allItems[i].id === id) { idx = i; break; }
+    }
+    if (idx === -1) return;
+    var newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= allItems.length) return;
+
+    // swap
+    var tmp = allItems[idx];
+    allItems[idx] = allItems[newIdx];
+    allItems[newIdx] = tmp;
+
+    // update order on server
+    var order = [];
+    for (var j = 0; j < allItems.length; j++) order.push(allItems[j].id);
+    fetch('/api/list/' + LIST_ID + '/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: order })
+    });
+
+    // update UI immediately
+    loadItems();
+}
+
+function saveOrder() {
+    var items = document.querySelectorAll('.todo-item');
+    var order = [];
+    for (var i = 0; i < items.length; i++) order.push(parseInt(items[i].getAttribute('data-id')));
+    fetch('/api/list/' + LIST_ID + '/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: order })
     });
 }
 
 function formatDateISO(dt) {
-    const y = dt.getFullYear();
-    const m = String(dt.getMonth() + 1).padStart(2, '0');
-    const d = String(dt.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
 }
 
-function formatDateBR(dt) {
-    const d = String(dt.getDate()).padStart(2, '0');
-    const m = String(dt.getMonth() + 1).padStart(2, '0');
-    const y = dt.getFullYear();
-    return `${d}/${m}/${y}`;
-}
+// date modal listeners
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.closest && e.target.closest('.todo-date-set')) {
+        var id = e.target.closest('.todo-date-set').getAttribute('data-id');
+        editingItemId = parseInt(id);
+        var dm = document.getElementById('dateModal');
+        if (dm) dm.classList.add('date-modal-open');
+    }
+});
+
+// =================== DRAG AND DROP ===================
+(function() {
+    var c = document.getElementById('itemsList');
+    var dragItem = null;
+
+    c.addEventListener('dragstart', function(e) {
+        var item = e.target.closest('.todo-item');
+        if (!item || e.target.closest('.todo-check') || e.target.closest('.todo-delete') || e.target.closest('.todo-date-set')) {
+            e.preventDefault(); return;
+        }
+        dragItem = item;
+        item.style.opacity = '0.4';
+        e.dataTransfer.effectAllowed = 'move';
+    });
+
+    c.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    });
+
+    c.addEventListener('drop', function(e) {
+        e.preventDefault();
+        var t = e.target.closest('.todo-item');
+        if (!t || t === dragItem) { dragItem = null; return; }
+        if (e.clientY < t.getBoundingClientRect().top + t.getBoundingClientRect().height / 2)
+            c.insertBefore(dragItem, t);
+        else if (t.nextSibling)
+            c.insertBefore(dragItem, t.nextSibling);
+        else c.appendChild(dragItem);
+        dragItem = null;
+        saveOrder();
+    });
+
+    c.addEventListener('dragend', function() {
+        c.querySelectorAll('.todo-item').forEach(function(i) { i.style.opacity = '1'; });
+        dragItem = null;
+    });
+})();
 </script>
 {% endblock %}
