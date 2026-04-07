@@ -12,8 +12,8 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="{{ url_for('main.index') }}" class="nav-logo">
-                <img src="{{ url_for('static', filename='images/logopk.jpg') }}" class="logo-img" alt="Pink Urban List" height="32">
-                <span class="logo-text">Pink Urban List</span>
+                <span class="logo-word-pink">Pink</span>
+                <span class="logo-word-urban">Urban</span>
             </a>
             <div class="nav-links">
                 {% if current_user.is_authenticated %}

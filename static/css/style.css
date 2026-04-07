@@ -90,10 +90,24 @@ a:hover {
     color: var(--pu-pink);
 }
 
-.logo-img {
-    height: 32px;
-    width: auto;
-    object-fit: contain;
+.logo-word-pink {
+    font-family: 'Inter', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #E91E8C, #F472B6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.logo-word-urban {
+    font-family: 'Inter', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--pu-black);
+    margin-left: 2px;
 }
 
 .nav-links {
