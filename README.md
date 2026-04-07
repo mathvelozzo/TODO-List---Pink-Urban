@@ -6,7 +6,7 @@ Um gerenciador de tarefas minimalista e colaborativo, pensado para ser rápido, 
 
 <div align="center">
 
-![Python](https://img.shields.io/badge/Python-3.11+-E91E8C?logo=python)
+![Python](https://img.shields.io/badge/Python-3.10+-E91E8C?logo=python)
 ![Flask](https://img.shields.io/badge/Flask-3.1-000?logo=flask)
 ![SQLite](https://img.shields.io/badge/Database-SQLite-003B57?logo=sqlite)
 ![License](https://img.shields.io/badge/License-MIT-E91E8C)
@@ -20,19 +20,24 @@ Um gerenciador de tarefas minimalista e colaborativo, pensado para ser rápido, 
 - **Criação rápida** — crie listas em segundos, sem friccao
 - **Datas de vencimento** — defina "hoje", "amanha", "proxima semana" ou escolha no calendario
 - **Indicadores visuais** — itens atrasados em vermelho, itens de hoje em destaque rosa
+- **Vistas separadas** — itens pendentes e concluidos em secoes distintas
+- **Edicao inline** — clique no nome do item para renomear (Enter salva, Esc cancela)
+- **Drag & Drop** — reordene itens arrastando e soltando
 - **Compartilhamento por link** — copie a URL e qualquer pessoa acessa a lista
+- **Configuracoes do usuario** — altere sua senha a qualquer momento pelo dropdown do perfil
 - **Sistema de aprovacao** — novos usuarios precisam de aprovacao do admin
 - **Painel administrativo** — aprove/rejeite usuarios, veja metricas
 - **Design smooth** — transicoes suaves, hover animations, feedback visual em cada acao
+- **Seguranca avancada** — rate limiting, CSP, HSTS e headers de seguranca via Talisman
 - **Totalmente responsivo** — funciona em desktop, tablet e mobile
 
 ## 🚀 Quick Start
 
 ### Requisitos
 
-- Python 3.11+
+- Python 3.10+
 
-### Instalacao
+### Instalacao local
 
 ```bash
 # Clone o repositorio
@@ -58,13 +63,21 @@ Acesse **http://127.0.0.1:5000**
 
 ### Primeiro Acesso Admin
 
-Na primeira execucao, um usuario admin e criado automaticamente. A senha e exibida no console:
+Na primeira execucao, um usuario admin criado automaticamente. A senha e exibida no console:
 
 ```
-[!] Admin criado. Senha: xyz123abc — ALTERE NO PRIMEIRO ACESSO!
+Admin criado! Senha: xyz123abc — ALTERE NO PRIMEIRO ACESSO!
 ```
 
 Faça login como `admin` e a senha exibida para acessar o painel administrativo.
+
+### 🔐 Reset da Senha Admin
+
+Se esqueceu a senha do admin:
+
+```bash
+py reset_admin.py
+```
 
 ## 📱 Como Usar
 
@@ -84,9 +97,19 @@ Faça login como `admin` e a senha exibida para acessar o painel administrativo.
 
 ### Definindo/alterando datas de itens existentes
 
-1. Clique na data exibida ao lado de qualquer item
-2. Escolha uma nova data no calendario
-3. Clique em **"Confirmar"**
+1. Clique na data exibida ao lado de qualquer item (mesmo "Sem data")
+2. Escolha no calendario ou use botoes rapidos
+3. Clique em **"Confirmar"** (ou **"Limpar"** para remover)
+
+### Editando nome do item
+
+1. Clique no texto de qualquer item
+2. O campo de texto aparece inline
+3. Pressione **Enter** para salvar ou **Esc** para cancelar
+
+### Reordenando itens
+
+Arraste e solte os itens — a nova ordem e salva automaticamente.
 
 ### Compartilhando
 
@@ -94,17 +117,26 @@ Faça login como `admin` e a senha exibida para acessar o painel administrativo.
 2. Envie o link para qualquer pessoa
 3. Quem receber pode visualizar a lista
 
+### Alterando sua senha
+
+1. Clique no seu avatar/nome no topo da pagina
+2. Selecione **Configuracoes**
+3. Preencha a senha atual e a nova senha
+
 ## 🏗️ Estrutura do Projeto
 
 ```
 .
-├── run.py                  # Entry point (nao rode debug em producao)
+├── run.py                  # Entry point (desenvolvimento)
+├── wsgi.py                 # WSGI entry point (producao)
 ├── app.py                  # Flask app factory + configuracoes
 ├── models.py               # Modelos: User, TodoList, ListItem
 ├── main.py                 # Rotas publicas + API CRUD de listas/itens
-├── auth.py                 # Login, cadastro e logout
+├── auth.py                 # Login, cadastro, logout e settings
 ├── admin.py                # Painel administrativo
+├── reset_admin.py          # Script para reset de senha admin
 ├── requirements.txt        # Dependencias Python
+├── Procfile                # Configuracao para Railway/Heroku
 ├── .env.example            # Exemplo de variaveis de ambiente
 ├── SECURITY.md             # Checklist de seguranca
 ├── README.md               # Este arquivo
@@ -113,7 +145,8 @@ Faça login como `admin` e a senha exibida para acessar o painel administrativo.
 │   └── js/main.js          # JS utilitario
 └── templates/
     ├── base.html           # Layout base
-    ├── index.html          # Pagina principal
+    ├── index.html          # Pagina principal (hero, features, social proof)
+    ├── settings.html       # Configuracoes do usuario
     ├── login.html          # Tela de login
     ├── register.html       # Tela de cadastro
     ├── view_list.html      # Visualizacao de lista
@@ -128,11 +161,39 @@ Faça login como `admin` e a senha exibida para acessar o painel administrativo.
 - Senhas armazenadas com **bcrypt** (via werkzeug)
 - Rotas protegidas com `@login_required` e `@admin_required`
 - **Ownership validation** — usuarios so editam proprias listas
+- **Rate limiting** — Flask-Limiter (10 req/min login, 5 req/min cadastro)
+- **CSP e headers de seguranca** — Flask-Talisman (X-Frame, HSTS, X-Content-Type)
 - Cookies de sessao com `HttpOnly` e `SameSite=Lax`
-- Senha admin gerada aleatoriamente na primeira execucao
+- **Input sanitization** — html.escape e regex para username
+- **Login logging** — tentativas falhas registradas em log
 - `.env` no `.gitignore` — secrets nunca vao pro repositorio
 
 Veja o checklist completo em [SECURITY.md](SECURITY.md).
+
+## 🚀 Deploy em Producao
+
+### Railway
+
+1. Conecte o repositorio no [Railway](https://railway.app)
+2. Na aba **Variables**, adicione:
+
+| Variable | Valor |
+|---|---|
+| `SECRET_KEY` | (gerar com `python -c "import secrets; print(secrets.token_hex(32))"`) |
+| `DATABASE_URL` | `sqlite:///pink_urban.db` |
+| `SESSION_COOKIE_SECURE` | `true` |
+| `FLASK_DEBUG` | `false` |
+
+3. Deploy automatico via `Procfile` (Gunicorn)
+
+### Outros servidores
+
+```bash
+pip install -r requirements.txt
+gunicorn --bind 0.0.0.0:8000 --workers 4 wsgi:application
+```
+
+Use Nginx como reverse proxy na frente do Gunicorn e configure HTTPS com Let's Encrypt.
 
 ## 🎨 Design
 
@@ -148,17 +209,6 @@ O tema **Pink Urban** usa uma paleta rosa vibrante com animacoes suaves:
 | Erro | `#EF4444` |
 
 Todas as transicoes usam `cubic-bezier(0.4, 0, 0.2, 1)` para movimento natural.
-
-## 🛣️ Próximos Passos
-
-- [ ] Rate limiting nas rotas de autenticacao
-- [ ] CSRF tokens nas requicoes AJAX
-- [ ] HTTPS em producao
-- [ ] Migracao para PostgreSQL
-- [ ] WebSockets para atualizacao em tempo real
-- [ ] Listas compartilhadas (multi-dono)
-- [ ] Categorias e tags
-- [ ] Drag & drop para reordenar itens
 
 ## 📄 Licenca
 
