@@ -3,63 +3,198 @@
 {% block title %}Pink Urban List - To-do lists simples e compartilháveis{% endblock %}
 
 {% block content %}
-<section class="hero">
-    <div class="hero-badge">Novo — Pink Urban List</div>
-    <h1 class="hero-title">Listas simples que você pode <span class="highlight">compartilhar</span></h1>
-    <p class="hero-subtitle">Crie, organize e compartilhe suas listas de tarefas. Sem complicacao.</p>
 
-    {% if current_user.is_authenticated %}
-        <div class="hero-actions">
-            <a href="#" class="btn btn-primary" id="createListBtn">+ Criar Nova Lista</a>
-            <a href="#myListsSection" class="btn btn-secondary" onclick="scrollToMyLists();return false;">Ver Minhas Listas</a>
-        </div>
-    {% else %}
-        <div class="hero-actions">
-            <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Comecar Agora</a>
-            <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">Entrar</a>
-        </div>
-    {% endif %}
-</section>
+<!-- Hero Section -->
+<section class="hero-modern">
+    <div class="hero-bg-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+    </div>
 
-<section class="features">
-    <div class="feature-card">
-        <div class="feature-icon">
-            <svg width="32" height="32" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/></svg>
-        </div>
-        <h3>Rapido de criar</h3>
-        <p>Crie sua lista em segundos. Cadastre-se e comece a usar imediatamente.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">
-            <svg width="32" height="32" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M4 12h16m-7-7l7 7-7 7"/></svg>
-        </div>
-        <h3>Compartilhe facilmente</h3>
-        <p>Compartilhe suas listas com um simples link. Sem permissoes complicadas.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon">
-            <svg width="32" height="32" fill="none" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" d="M8 7h8M8 11h8M8 15h4"/></svg>
-        </div>
-        <h3>Acesso de qualquer lugar</h3>
-        <p>Acesse suas listas de qualquer dispositivo, a qualquer momento.</p>
-    </div>
-</section>
+    <div class="hero-modern-content">
+        <div class="hero-badge animate-fade-in">Novo — Pink Urban List</div>
 
-{% if current_user.is_authenticated %}
-<section class="my-lists-section" id="myListsSection">
-    <h2 class="section-title">Minhas Listas</h2>
-    <div class="lists-grid" id="listsGrid">
-        <div class="empty-state" id="emptyLists">
-            <div class="empty-state-icon">
-                <svg width="48" height="48" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><path stroke="currentColor" stroke-width="1.5" d="M8 12h8M12 8v8"/></svg>
+        <h1 class="hero-modern-title animate-slide-up">
+            Listas simples que<br>você pode <span class="highlight-gradient">compartilhar</span>
+        </h1>
+
+        <p class="hero-modern-sub animate-slide-up-delay">
+            Crie, organize e compartilhe suas listas de tarefas.<br>
+            Sem cadastro obrigatório. Sem complicação.
+        </p>
+
+        {% if current_user.is_authenticated %}
+        <div class="hero-modern-actions animate-fade-in-delay">
+            <a href="#" class="btn btn-primary btn-glow" id="createListBtn">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" d="M12 5v14M5 12h14"/></svg>
+                Criar Nova Lista
+            </a>
+            <a href="#myListsSection" class="btn btn-secondary" onclick="scrollToMyLists();return false;">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"/></svg>
+                Ver Minhas Listas
+            </a>
+        </div>
+        {% else %}
+        <div class="hero-modern-actions animate-fade-in-delay">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-glow">Começar Agora — É grátis</a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-ghost">Já tenho conta</a>
+        </div>
+        {% endif %}
+
+        <div class="hero-stats animate-fade-in-delay-2">
+            <div class="stat-mini">
+                <span class="stat-mini-num">100%</span>
+                <span class="stat-mini-label">gratuito</span>
             </div>
-            <p>Nenhuma lista criada ainda.</p>
-            <p class="empty-state-hint">Clique em "Criar Nova Lista" para comecar!</p>
+            <div class="stat-divider"></div>
+            <div class="stat-mini">
+                <span class="stat-mini-num">0</span>
+                <span class="stat-mini-label">limitações</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-mini">
+                <span class="stat-mini-num">∞</span>
+                <span class="stat-mini-label">simplicidade</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="features-modern">
+    <div class="features-grid">
+        <div class="feature-card-modern animate-on-scroll">
+            <div class="feature-bg"></div>
+            <div class="feature-card-icon">
+                <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-width="2" d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+            </div>
+            <h3>Ultra rápido</h3>
+            <p>Crie sua lista em segundos. Sem formulários longos, sem perguntas desnecessárias.</p>
+        </div>
+
+        <div class="feature-card-modern animate-on-scroll" style="animation-delay: 0.1s">
+            <div class="feature-bg"></div>
+            <div class="feature-card-icon">
+                <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                    <circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                    <circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="2"/>
+                    <path stroke="currentColor" stroke-width="2" d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>
+                </svg>
+            </div>
+            <h3>Compartilhe fácil</h3>
+            <p>Um link simples. Sem permissões complicadas. Qualquer pessoa acessa sua lista.</p>
+        </div>
+
+        <div class="feature-card-modern animate-on-scroll" style="animation-delay: 0.2s">
+            <div class="feature-bg"></div>
+            <div class="feature-card-icon">
+                <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                    <rect x="5" y="2" width="14" height="20" rx="2" stroke="currentColor" stroke-width="2"/>
+                    <path stroke="currentColor" stroke-width="2" d="M12 18h.01"/>
+                </svg>
+            </div>
+            <h3>Qualquer dispositivo</h3>
+            <p>Desktop, tablet ou celular. Suas listas sempre na palma da sua mão.</p>
+        </div>
+
+        <div class="feature-card-modern animate-on-scroll" style="animation-delay: 0.3s">
+            <div class="feature-bg"></div>
+            <div class="feature-card-icon">
+                <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+                    <path stroke="currentColor" stroke-width="2" d="M16 2v4M8 2v4M3 10h18"/>
+                </svg>
+            </div>
+            <h3>Datas de vencimento</h3>
+            <p>Organize suas tarefas por data. Visualize o que está atrasado ou próximo.</p>
+        </div>
+
+        <div class="feature-card-modern animate-on-scroll" style="animation-delay: 0.4s">
+            <div class="feature-bg"></div>
+            <div class="feature-card-icon">
+                <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-width="2" d="M9 2l1.5 3 3 .5-2 2 .5 3-3-1.5L6 10.5 7.5 7.5 6 4.5 9 2z"/>
+                    <path stroke="currentColor" stroke-width="2" d="M16 7l1 2 2 .3-1.5 1.5.3 2-2.3-1-2 1 .5-2L14 9l-1.2-2H16z"/>
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+                </svg>
+            </div>
+            <h3>Arraste e reordene</h3>
+            <p>Mude a ordem das suas tarefas arrastando. Controle total da sua produção.</p>
+        </div>
+
+        <div class="feature-card-modern animate-on-scroll" style="animation-delay: 0.5s">
+            <div class="feature-bg"></div>
+            <div class="feature-card-icon">
+                <svg width="28" height="28" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-width="2" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <path stroke="currentColor" stroke-width="2" d="M9 12l2 2 4-4"/>
+                </svg>
+            </div>
+            <h3>Seguro e privado</h3>
+            <p>Suas listas são suas. Senhas criptografadas e acesso protegido.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Social Proof -->
+<section class="social-proof">
+    <div class="proof-card">
+        <svg width="32" height="32" fill="currentColor" viewBox="0 0 24 24" opacity="0.15"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
+        <p class="proof-text">"Simples, rápido e faz exatamente o que promete. Perfeito pra listas de compras, packing lists e metas do mês inteiro."</p>
+        <div class="proof-author">
+            <div class="proof-avatar">U</div>
+            <div class="proof-info">
+                <span class="proof-name">Usuário satisfeito</span>
+                <span class="proof-role">Feedback verificado</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- My Lists (logged in users) -->
+{% if current_user.is_authenticated %}
+<section class="my-lists-modern" id="myListsSection">
+    <div class="my-lists-header">
+        <h2 class="section-title-modern">Suas Listas</h2>
+        <button class="btn btn-primary btn-sm-icon" id="createListBtnMobile" onclick="document.getElementById('createListBtn').click()">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2.5" d="M12 5v14M5 12h14"/></svg>
+            Nova
+        </button>
+    </div>
+    <div class="lists-grid-modern" id="listsGrid">
+        <div class="empty-state-modern" id="emptyLists">
+            <div class="empty-illustration">
+                <svg width="80" height="80" fill="none" viewBox="0 0 24 24" opacity="0.2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1"/>
+                    <path stroke="currentColor" stroke-width="1" d="M7 8l2 2 4-4M7 12h10M7 16h6"/>
+                </svg>
+            </div>
+            <h3>Nenhuma lista ainda</h3>
+            <p>Clique em "Criar Nova Lista" para começar!</p>
         </div>
     </div>
 </section>
 {% endif %}
 
+<!-- CTA Section -->
+{% if not current_user.is_authenticated %}
+<section class="cta-section">
+    <div class="cta-content">
+        <h2>Pronto para simplificar?</h2>
+        <p>Crie sua primeira lista em menos de 30 segundos.</p>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-glow btn-cta-start">
+            Começar Agora — É grátis
+            <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+    </div>
+</section>
+{% endif %}
+
+<!-- Create List Modal -->
 <div class="modal-overlay" id="createListModal">
     <div class="modal">
         <div class="modal-header">
@@ -67,7 +202,7 @@
             <button class="modal-close" id="closeModal">&times;</button>
         </div>
         <div class="modal-body">
-            <label class="form-label">Titulo da Lista</label>
+            <label class="form-label">Título da Lista</label>
             <input type="text" class="form-input" id="listTitle" placeholder="Ex: Lista de compras..." autocomplete="off">
             <div class="error-text" id="listError"></div>
             <div class="success-text" id="listSuccess"></div>
@@ -85,18 +220,16 @@
 {% if current_user.is_authenticated %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Load lists on page load
     loadMyLists();
 
-    // Modal
-    const modal = document.getElementById('createListModal');
-    const createBtn = document.getElementById('createListBtn');
-    const closeBtn = document.getElementById('closeModal');
-    const cancelBtn = document.getElementById('cancelModal');
-    const confirmBtn = document.getElementById('confirmCreate');
-    const titleInput = document.getElementById('listTitle');
-    const errorEl = document.getElementById('listError');
-    const successEl = document.getElementById('listSuccess');
+    var modal = document.getElementById('createListModal');
+    var createBtn = document.getElementById('createListBtn');
+    var closeBtn = document.getElementById('closeModal');
+    var cancelBtn = document.getElementById('cancelModal');
+    var confirmBtn = document.getElementById('confirmCreate');
+    var titleInput = document.getElementById('listTitle');
+    var errorEl = document.getElementById('listError');
+    var successEl = document.getElementById('listSuccess');
 
     createBtn.addEventListener('click', function(e) {
         e.preventDefault();
@@ -107,127 +240,103 @@ document.addEventListener('DOMContentLoaded', function() {
         titleInput.focus();
     });
 
-    function closeModal() {
-        modal.classList.remove('modal-open');
-    }
+    function closeModal() { modal.classList.remove('modal-open'); }
 
     closeBtn.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) closeModal();
-    });
+    modal.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
 
     confirmBtn.addEventListener('click', async function() {
-        const title = titleInput.value.trim();
-        if (!title) {
-            errorEl.textContent = 'Titulo e obrigatorio.';
-            titleInput.focus();
-            return;
-        }
+        var title = titleInput.value.trim();
+        if (!title) { errorEl.textContent = 'Título é obrigatório.'; titleInput.focus(); return; }
         errorEl.textContent = '';
 
         try {
             confirmBtn.textContent = 'Criando...';
             confirmBtn.disabled = true;
 
-            const res = await fetch('/create-list', {
+            var res = await fetch('/create-list', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ title: title })
             });
 
-            const data = await res.json();
+            var data = await res.json();
 
             if (res.ok) {
                 successEl.textContent = 'Lista criada com sucesso!';
-                setTimeout(() => {
+                setTimeout(function() {
                     closeModal();
                     successEl.textContent = '';
                     confirmBtn.textContent = 'Criar Lista';
                     confirmBtn.disabled = false;
                     loadMyLists();
-                    // Scroll to the new list
-                    setTimeout(() => {
-                        const section = document.getElementById('myListsSection');
+                    setTimeout(function() {
+                        var section = document.getElementById('myListsSection');
                         if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }, 200);
-                }, 600);
+                }, 500);
             } else {
                 errorEl.textContent = data.error || 'Erro ao criar lista.';
                 confirmBtn.textContent = 'Criar Lista';
                 confirmBtn.disabled = false;
             }
         } catch (err) {
-            errorEl.textContent = 'Erro de conexao. Tente novamente.';
+            errorEl.textContent = 'Erro de conexão. Tente novamente.';
             confirmBtn.textContent = 'Criar Lista';
             confirmBtn.disabled = false;
         }
     });
 
-    titleInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') confirmBtn.click();
-    });
+    titleInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') confirmBtn.click(); });
 });
 
 async function loadMyLists() {
-    const grid = document.getElementById('listsGrid');
-    const empty = document.getElementById('emptyLists');
-
+    var grid = document.getElementById('listsGrid');
+    var empty = document.getElementById('emptyLists');
     if (!grid) return;
 
     try {
-        const res = await fetch('/api/lists');
-        const lists = await res.json();
+        var res = await fetch('/api/lists');
+        var lists = await res.json();
 
         if (lists.length === 0) {
-            const emptyEl = document.getElementById('emptyLists');
-            if (emptyEl) emptyEl.style.display = 'flex';
+            if (empty) empty.style.display = 'flex';
             return;
         }
 
-        const emptyEl = document.getElementById('emptyLists');
-        if (emptyEl) emptyEl.style.display = 'none';
-        // Remove old cards but keep empty state element
-        grid.querySelectorAll('.list-card').forEach(el => el.remove());
+        if (empty) empty.style.display = 'none';
+        grid.querySelectorAll('.list-card-modern').forEach(function(el) { el.remove(); });
 
-        lists.forEach(list => {
-            const card = document.createElement('div');
-            card.className = 'list-card';
-            card.innerHTML = `
-                <div class="list-card-header">
-                    <span class="list-card-title">${escapeHtml(list.title)}</span>
-                </div>
-                <div class="list-card-date">Criada em ${list.created_at}</div>
-                <div class="list-card-actions">
-                    <a href="/list/${list.slug}" class="btn-list-action">Abrir</a>
-                    <button class="btn-list-delete" onclick="deleteList(${list.id}, '${list.slug}')">Remover</button>
-                </div>
-            `;
+        lists.forEach(function(list) {
+            var card = document.createElement('div');
+            card.className = 'list-card-modern';
+            card.innerHTML =
+                '<div class="list-card-modern-icon">' +
+                '<svg width="24" height="24" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><path stroke="currentColor" stroke-width="1.5" d="M7 8h10M7 12h6"/></svg>' +
+                '</div>' +
+                '<h4 class="list-card-modern-title">' + escapeHtml(list.title) + '</h4>' +
+                '<span class="list-card-modern-date">' + list.created_at + '</span>' +
+                '<div class="list-card-modern-btns">' +
+                '<a href="/list/' + list.slug + '" class="btn-list-action-modern">Abrir</a>' +
+                '<button class="btn-list-delete-modern" onclick="deleteList(' + list.id + ')">Excluir</button>' +
+                '</div>';
             grid.appendChild(card);
         });
-    } catch (err) {
-        console.error('Erro ao carregar listas:', err);
-    }
+    } catch (err) { console.error('Erro ao carregar listas:', err); }
 }
 
 async function deleteList(listId) {
     if (!confirm('Tem certeza que deseja excluir esta lista?')) return;
-
     try {
-        const res = await fetch(`/api/list/${listId}/delete`, { method: 'DELETE' });
-        if (res.ok) {
-            loadMyLists();
-        } else {
-            alert('Erro ao excluir lista.');
-        }
-    } catch (err) {
-        alert('Erro de conexao.');
-    }
+        var res = await fetch('/api/list/' + listId + '/delete', { method: 'DELETE' });
+        if (res.ok) { loadMyLists(); } else { alert('Erro ao excluir lista.'); }
+    } catch (err) { alert('Erro de conexão.'); }
 }
 
 function scrollToMyLists() {
-    setTimeout(() => {
-        const section = document.getElementById('myListsSection');
+    setTimeout(function() {
+        var section = document.getElementById('myListsSection');
         if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
 }

@@ -1,12 +1,19 @@
+import re
+import html
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
-from app import db
+from flask_limiter.util import get_remote_address
+from app import db, limiter, logger
 from models import User
 from werkzeug.security import check_password_hash
 
 auth_bp = Blueprint('auth', __name__)
 
+# Allowed chars: alphanumeric, underscore, hyphen, dot
+USERNAME_RE = re.compile(r'^[a-zA-Z0-9_.-]+$')
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -16,21 +23,27 @@ def login():
         username = data.get('username', '').strip()
         password = data.get('password', '')
 
+        # Input sanitization
+        username = html.escape(username)
+
         user = User.query.filter_by(username=username).first()
 
         if user and user.check_password(password):
             if not user.is_approved:
+                logger.info(f'Login attempt (pending user): {username} from {request.remote_addr}')
                 if request.is_json:
                     return jsonify({'error': 'Sua conta ainda nao foi aprovada pelo administrador.'}), 403
                 flash('Sua conta ainda nao foi aprovada pelo administrador.', 'warning')
                 return render_template('login.html')
 
             login_user(user)
+            logger.info(f'Login success: {username} from {request.remote_addr}')
             if request.is_json:
                 return jsonify({'message': 'Login realizado com sucesso!'})
             flash('Login realizado com sucesso!', 'success')
             return redirect(url_for('main.index'))
         else:
+            logger.warning(f'Failed login attempt: {username} from {request.remote_addr}')
             if request.is_json:
                 return jsonify({'error': 'Usuario ou senha invalidos.'}), 401
             flash('Usuario ou senha invalidos.', 'danger')
@@ -38,14 +51,15 @@ def login():
     return render_template('login.html')
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
 
     if request.method == 'POST':
         data = request.get_json() if request.is_json else request.form
-        username = data.get('username', '').strip()
-        email = data.get('email', '').strip()
+        username = html.escape(data.get('username', '').strip())
+        email = html.escape(data.get('email', '').strip())
         password = data.get('password', '')
         confirm = data.get('confirm_password', '')
 
@@ -53,6 +67,8 @@ def register():
 
         if not username or len(username) < 3:
             errors.append('Usuario deve ter pelo menos 3 caracteres.')
+        if not USERNAME_RE.match(username):
+            errors.append('Usuario pode conter apenas letras, numeros, _, - e .')
         if not email or '@' not in email:
             errors.append('Email invalido.')
         if not password or len(password) < 6:
@@ -76,6 +92,7 @@ def register():
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
+        logger.info(f'New registration: {username} ({email}) from {request.remote_addr}')
 
         if request.is_json:
             return jsonify({'message': 'Cadastro realizado! Aguarde aprovacao do administrador.'}), 201
