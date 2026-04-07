@@ -33,7 +33,6 @@ def reset_admin_password():
         'senha': new_pass
     })
 
-admin_bp = Blueprint('admin', __name__)
 
 def admin_required(f):
     @wraps(f)
