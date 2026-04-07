@@ -4,14 +4,14 @@
 
 {% block content %}
 <section class="hero">
-    <div class="hero-badge">Novo - Pink Urban Lists beta!</div>
-    <h1 class="hero-title">Listas simples que voc pode <span class="highlight">compartilhar</span></h1>
+    <div class="hero-badge">Novo — Pink Urban Lists</div>
+    <h1 class="hero-title">Listas simples que você pode <span class="highlight">compartilhar</span></h1>
     <p class="hero-subtitle">Crie, organize e compartilhe suas listas de tarefas. Sem complicacao.</p>
 
     {% if current_user.is_authenticated %}
         <div class="hero-actions">
             <a href="#" class="btn btn-primary" id="createListBtn">+ Criar Nova Lista</a>
-            <a href="#" class="btn btn-secondary" onclick="loadMyLists();return false;">Ver Minhas Listas</a>
+            <a href="#myListsSection" class="btn btn-secondary" onclick="scrollToMyLists();return false;">Ver Minhas Listas</a>
         </div>
     {% else %}
         <div class="hero-actions">
@@ -50,8 +50,11 @@
     <h2 class="section-title">Minhas Listas</h2>
     <div class="lists-grid" id="listsGrid">
         <div class="empty-state" id="emptyLists">
+            <div class="empty-state-icon">
+                <svg width="48" height="48" fill="none" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/><path stroke="currentColor" stroke-width="1.5" d="M8 12h8M12 8v8"/></svg>
+            </div>
             <p>Nenhuma lista criada ainda.</p>
-            <p style="color: #9ca3af;">Clique em "Criar Nova Lista" para comecar!</p>
+            <p class="empty-state-hint">Clique em "Criar Nova Lista" para comecar!</p>
         </div>
     </div>
 </section>
@@ -65,7 +68,7 @@
         </div>
         <div class="modal-body">
             <label class="form-label">Titulo da Lista</label>
-            <input type="text" class="form-input" id="listTitle" placeholder="Ex: Lista de compras...">
+            <input type="text" class="form-input" id="listTitle" placeholder="Ex: Lista de compras..." autocomplete="off">
             <div class="error-text" id="listError"></div>
             <div class="success-text" id="listSuccess"></div>
             <div class="modal-actions">
@@ -82,6 +85,10 @@
 {% if current_user.is_authenticated %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Load lists on page load
+    loadMyLists();
+
+    // Modal
     const modal = document.getElementById('createListModal');
     const createBtn = document.getElementById('createListBtn');
     const closeBtn = document.getElementById('closeModal');
@@ -95,7 +102,9 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         modal.classList.add('modal-open');
         errorEl.textContent = '';
+        successEl.textContent = '';
         titleInput.value = '';
+        titleInput.focus();
     });
 
     function closeModal() {
@@ -112,6 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const title = titleInput.value.trim();
         if (!title) {
             errorEl.textContent = 'Titulo e obrigatorio.';
+            titleInput.focus();
             return;
         }
         errorEl.textContent = '';
@@ -136,7 +146,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     confirmBtn.textContent = 'Criar Lista';
                     confirmBtn.disabled = false;
                     loadMyLists();
-                }, 800);
+                    // Scroll to the new list
+                    setTimeout(() => {
+                        const section = document.getElementById('myListsSection');
+                        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 200);
+                }, 600);
             } else {
                 errorEl.textContent = data.error || 'Erro ao criar lista.';
                 confirmBtn.textContent = 'Criar Lista';
@@ -165,24 +180,31 @@ async function loadMyLists() {
         const lists = await res.json();
 
         if (lists.length === 0) {
-            empty.style.display = 'flex';
+            const emptyEl = document.getElementById('emptyLists');
+            if (emptyEl) emptyEl.style.display = 'flex';
             return;
         }
 
-        empty.style.display = 'none';
-        grid.innerHTML = lists.map(list => `
-            <div class="list-card">
+        const emptyEl = document.getElementById('emptyLists');
+        if (emptyEl) emptyEl.style.display = 'none';
+        // Remove old cards but keep empty state element
+        grid.querySelectorAll('.list-card').forEach(el => el.remove());
+
+        lists.forEach(list => {
+            const card = document.createElement('div');
+            card.className = 'list-card';
+            card.innerHTML = `
                 <div class="list-card-header">
                     <span class="list-card-title">${escapeHtml(list.title)}</span>
-                    ${list.is_public ? '<span class="badge-public">Publica</span>' : '<span class="badge-private">Privada</span>'}
                 </div>
                 <div class="list-card-date">Criada em ${list.created_at}</div>
                 <div class="list-card-actions">
                     <a href="/list/${list.slug}" class="btn-list-action">Abrir</a>
-                    <button class="btn-list-delete" onclick="deleteList(${list.id}, '${list.slug}')">&times; Excluir</button>
+                    <button class="btn-list-delete" onclick="deleteList(${list.id}, '${list.slug}')">Remover</button>
                 </div>
-            </div>
-        `).join('');
+            `;
+            grid.appendChild(card);
+        });
     } catch (err) {
         console.error('Erro ao carregar listas:', err);
     }
@@ -201,6 +223,13 @@ async function deleteList(listId) {
     } catch (err) {
         alert('Erro de conexao.');
     }
+}
+
+function scrollToMyLists() {
+    setTimeout(() => {
+        const section = document.getElementById('myListsSection');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 }
 </script>
 {% endif %}

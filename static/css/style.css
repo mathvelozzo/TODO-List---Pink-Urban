@@ -832,6 +832,137 @@ a:hover {
     flex: 1;
 }
 
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.btn-due-toggle {
+    background: var(--pu-white);
+    color: var(--pu-gray);
+    border-color: var(--pu-border);
+    padding: 10px 12px;
+}
+
+.btn-due-toggle:hover {
+    border-color: var(--pu-pink);
+    color: var(--pu-pink);
+}
+
+/* ========== DATE PICKER ========== */
+.date-picker-area {
+    margin-top: 12px;
+    background: var(--pu-white);
+    border: 1px solid var(--pu-border);
+    border-radius: var(--pu-radius);
+    padding: 16px;
+    animation: slideDown 0.25s var(--transition-smooth);
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.date-picker-wrapper {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.date-picker-wrapper .form-input {
+    flex: 1;
+    min-width: 160px;
+}
+
+.date-picker-wrapper input[type="date"] {
+    color-scheme: light;
+}
+
+/* ========== DATE MODAL ========== */
+.date-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-smooth);
+}
+
+.date-modal-overlay.date-modal-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.date-modal {
+    background: var(--pu-white);
+    border-radius: var(--pu-radius-lg);
+    width: 90%;
+    max-width: 380px;
+    padding: 24px;
+    box-shadow: var(--pu-shadow-lg);
+    transform: translateY(20px) scale(0.95);
+    transition: all var(--transition-smooth);
+}
+
+.date-modal-open .date-modal {
+    transform: translateY(0) scale(1);
+}
+
+.date-modal h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.date-modal-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.date-quick-btn {
+    flex: 1;
+    padding: 10px 8px;
+    background: var(--pu-bg);
+    border: 1px solid var(--pu-border);
+    border-radius: var(--pu-radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: inherit;
+}
+
+.date-quick-btn:hover {
+    background: var(--pu-pink-bg);
+    border-color: var(--pu-pink);
+    color: var(--pu-pink);
+    transform: translateY(-1px);
+}
+
+.date-modal-custom {
+    border-top: 1px solid var(--pu-border);
+    padding-top: 16px;
+}
+
+.date-modal-custom input[type="date"] {
+    margin-bottom: 12px;
+    color-scheme: light;
+}
+
+.date-modal-buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
 /* ========== TODO ITEMS ========== */
 .items-list {
     display: flex;
@@ -920,6 +1051,68 @@ a:hover {
 
 .todo-item:hover .todo-delete {
     opacity: 1;
+}
+
+/* ========== TODO DUE DATES ========== */
+.todo-due-btn {
+    padding: 4px 10px;
+    background: var(--pu-bg);
+    border: 1px solid var(--pu-border);
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--pu-gray);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    font-family: inherit;
+    flex-shrink: 0;
+}
+
+.todo-due-btn:hover {
+    background: var(--pu-pink-bg);
+    border-color: var(--pu-pink);
+    color: var(--pu-pink);
+}
+
+.todo-overdue {
+    border-left: 3px solid var(--pu-danger);
+}
+
+.todo-overdue .todo-due-btn {
+    background: #FEE2E2;
+    color: var(--pu-danger);
+    border-color: #FECACA;
+}
+
+.todo-today {
+    border-left: 3px solid var(--pu-pink);
+}
+
+.todo-today .todo-due-btn {
+    background: var(--pu-pink-bg);
+    color: var(--pu-pink);
+    border-color: var(--pu-pink-light);
+}
+
+.todo-date-label {
+    font-size: 11px;
+    color: var(--pu-gray);
+    padding: 4px 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ========== EMPTY STATE ========== */
+.empty-state-icon {
+    color: var(--pu-gray-light);
+    margin-bottom: 12px;
+}
+
+.empty-state-hint {
+    color: var(--pu-gray);
+    font-size: 13px;
+    margin-top: 4px;
 }
 
 .todo-delete:hover {

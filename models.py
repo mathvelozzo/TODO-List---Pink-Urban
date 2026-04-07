@@ -42,6 +42,7 @@ class ListItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String(500), nullable=False)
     done = db.Column(db.Boolean, default=False)
+    due_date = db.Column(db.Date, nullable=True)
     list_id = db.Column(db.Integer, db.ForeignKey('todo_list.id'), nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
