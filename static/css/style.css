@@ -90,14 +90,10 @@ a:hover {
     color: var(--pu-pink);
 }
 
-.logo-icon {
-    background: var(--pu-pink);
-    color: white;
-    padding: 6px 10px;
-    border-radius: var(--pu-radius-sm);
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
+.logo-img {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
 }
 
 .nav-links {

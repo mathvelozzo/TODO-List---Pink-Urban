@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Pink Urban Lists{% endblock %}</title>
+    <title>{% block title %}Pink Urban List{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     {% block extra_css %}{% endblock %}
@@ -12,8 +12,8 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="{{ url_for('main.index') }}" class="nav-logo">
-                <span class="logo-icon">PU</span>
-                <span class="logo-text">Pink Urban Lists</span>
+                <img src="{{ url_for('static', filename='images/logopk-removebg-preview.png') }}" class="logo-img" alt="Pink Urban List" height="32">
+                <span class="logo-text">Pink Urban List</span>
             </a>
             <div class="nav-links">
                 {% if current_user.is_authenticated %}
@@ -53,7 +53,7 @@
 
     <footer class="footer">
         <div class="footer-container">
-            <p>(c) 2026 Pink Urban Lists. Todos os direitos reservados.</p>
+            <p>(c) 2026 Pink Urban List. Todos os direitos reservados.</p>
         </div>
     </footer>
 
