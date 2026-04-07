@@ -27,7 +27,13 @@ def create_app():
     app = Flask(__name__)
 
     # Config
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(64).hex())
+    _secret = os.getenv('SECRET_KEY')
+    if not _secret or _secret == 'default-secret':
+        raise RuntimeError(
+            'SECRET_KEY nao definida! Configure a variavel de ambiente SECRET_KEY '
+            'com uma chave segura (python -c "import secrets; print(secrets.token_hex(32))")'
+        )
+    app.config['SECRET_KEY'] = _secret
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///pink_urban.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SESSION_COOKIE_SECURE'] = os.getenv('SESSION_COOKIE_SECURE', 'false').lower() == 'true'

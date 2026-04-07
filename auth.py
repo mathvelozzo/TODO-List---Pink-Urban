@@ -1,5 +1,4 @@
 import re
-import html
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
 from flask_login import login_user, logout_user, current_user, login_required
 from flask_limiter.util import get_remote_address
@@ -23,8 +22,12 @@ def login():
         username = data.get('username', '').strip()
         password = data.get('password', '')
 
-        # Input sanitization
-        username = html.escape(username)
+        # Validate username length
+        if not username or len(username) > 80:
+            if request.is_json:
+                return jsonify({'error': 'Usuario ou senha invalidos.'}), 401
+            flash('Usuario ou senha invalidos.', 'danger')
+            return render_template('login.html')
 
         user = User.query.filter_by(username=username).first()
 
@@ -58,20 +61,18 @@ def register():
 
     if request.method == 'POST':
         data = request.get_json() if request.is_json else request.form
-        username = html.escape(data.get('username', '').strip())
-        email = html.escape(data.get('email', '').strip())
+        username = data.get('username', '').strip()
+        email = data.get('email', '').strip()
         password = data.get('password', '')
         confirm = data.get('confirm_password', '')
 
         errors = []
 
-        if not username or len(username) < 3:
+        if not username or len(username) < 3 or len(username) > 80:
             errors.append('Usuario deve ter pelo menos 3 caracteres.')
         if not USERNAME_RE.match(username):
             errors.append('Usuario pode conter apenas letras, numeros, _, - e .')
-        if not email or '@' not in email:
-            errors.append('Email invalido.')
-        if not password or len(password) < 6:
+        if not email or '@' not in email or len(email) > 320:
             errors.append('Senha deve ter pelo menos 6 caracteres.')
         if password != confirm:
             errors.append('As senhas nao coincidem.')
@@ -128,7 +129,7 @@ def change_password():
 
     if not current_pw:
         return jsonify({'error': 'Senha atual e obrigatoria.'}), 400
-    if not new_pw or len(new_pw) < 6:
+    if not new_pw or len(new_pw) < 6 or len(new_pw) > 128:
         return jsonify({'error': 'Nova senha deve ter pelo menos 6 caracteres.'}), 400
 
     if not current_user.check_password(current_pw):

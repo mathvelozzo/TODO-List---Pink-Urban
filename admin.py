@@ -4,6 +4,7 @@ from functools import wraps
 from app import db, logger
 from models import User, TodoList
 
+admin_bp = Blueprint('admin', __name__)
 
 def admin_required(f):
     @wraps(f)

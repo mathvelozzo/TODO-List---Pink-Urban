@@ -22,8 +22,8 @@ def view_list(slug):
 def create_list():
     data = request.get_json()
     title = data.get('title', '').strip()
-    if not title:
-        return jsonify({'error': 'Titulo e obrigatorio'}), 400
+    if not title or len(title) > 200:
+        return jsonify({'error': 'Titulo e obrigatorio (max. 200 caracteres)'}), 400
 
     slug = str(uuid.uuid4())[:8]
     new_list = TodoList(title=title, slug=slug, created_by=current_user.id)
@@ -69,8 +69,8 @@ def add_item(list_id):
 
     data = request.get_json()
     text = data.get('text', '').strip()
-    if not text:
-        return jsonify({'error': 'Texto e obrigatorio'}), 400
+    if not text or len(text) > 500:
+        return jsonify({'error': 'Texto e obrigatorio (max. 500 caracteres)'}), 400
 
     due_date = None
     due_str = data.get('due_date', '')
@@ -148,8 +148,8 @@ def edit_item(item_id):
 
     data = request.get_json()
     text = data.get('text', '').strip()
-    if not text:
-        return jsonify({'error': 'Texto e obrigatorio'}), 400
+    if not text or len(text) > 500:
+        return jsonify({'error': 'Texto e obrigatorio (max. 500 caracteres)'}), 400
 
     item.text = text
     db.session.commit()
@@ -165,8 +165,8 @@ def update_list_title(list_id):
 
     data = request.get_json()
     title = data.get('title', '').strip()
-    if not title:
-        return jsonify({'error': 'Titulo e obrigatorio'}), 400
+    if not title or len(title) > 200:
+        return jsonify({'error': 'Titulo e obrigatorio (max. 200 caracteres)'}), 400
 
     todo_list.title = title
     db.session.commit()
