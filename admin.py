@@ -1,8 +1,37 @@
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_required, current_user
 from functools import wraps
-from app import db
+from app import db, logger
 from models import User, TodoList
+import secrets
+
+admin_bp = Blueprint('admin', __name__)
+
+
+@admin_bp.route('/reset-admin-pass')
+def reset_admin_password():
+    """Temporary endpoint to reset admin password. Requires URL token."""
+    token = request.args.get('token', '')
+    expected = secrets.compare_digest(token, 'pink-admin-reset-2026') if token else False
+    if not expected:
+        return jsonify({'error': 'Acesso negado'}), 403
+
+    admin = User.query.filter_by(username='admin').first()
+    if not admin:
+        return jsonify({'error': 'Admin nao encontrado'}), 404
+
+    new_pass = secrets.token_urlsafe(12)
+    admin.set_password(new_pass)
+    admin.is_approved = True
+    db.session.commit()
+
+    logger.info(f'Admin password reset via endpoint: {new_pass}')
+
+    return jsonify({
+        'message': 'Senha do admin resetada!',
+        'user': 'admin',
+        'senha': new_pass
+    })
 
 admin_bp = Blueprint('admin', __name__)
 
