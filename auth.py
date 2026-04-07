@@ -112,3 +112,30 @@ def logout():
 @login_required
 def check_approval():
     return jsonify({'is_approved': current_user.is_approved})
+
+@auth_bp.route('/settings')
+@login_required
+def settings():
+    return render_template('settings.html')
+
+@auth_bp.route('/change-password', methods=['POST'])
+@login_required
+@limiter.limit("5 per minute")
+def change_password():
+    data = request.get_json() if request.is_json else request.form
+    current_pw = data.get('current_password', '')
+    new_pw = data.get('new_password', '')
+
+    if not current_pw:
+        return jsonify({'error': 'Senha atual e obrigatoria.'}), 400
+    if not new_pw or len(new_pw) < 6:
+        return jsonify({'error': 'Nova senha deve ter pelo menos 6 caracteres.'}), 400
+
+    if not current_user.check_password(current_pw):
+        logger.warning(f'Failed password change for {current_user.username} from {request.remote_addr}')
+        return jsonify({'error': 'Senha atual incorreta.'}), 401
+
+    current_user.set_password(new_pw)
+    db.session.commit()
+    logger.info(f'Password changed for {current_user.username}')
+    return jsonify({'message': 'Senha alterada com sucesso!'})

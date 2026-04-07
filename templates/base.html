@@ -21,9 +21,21 @@
                     {% if current_user.role == 'admin' %}
                         <a href="{{ url_for('admin.dashboard') }}" class="nav-link nav-admin">Admin</a>
                     {% endif %}
-                    <div class="nav-user">
-                        <span class="user-avatar">{{ current_user.username[0]|upper }}</span>
-                        <span class="user-name">{{ current_user.username }}</span>
+                    <div class="nav-user-dropdown" id="navUserDropdown">
+                        <button class="nav-user-btn" onclick="document.getElementById('navUserDropdown').classList.toggle('nav-user-dropdown-open')">
+                            <span class="user-avatar">{{ current_user.username[0]|upper }}</span>
+                            <span class="user-name">{{ current_user.username }}</span>
+                        </button>
+                        <div class="nav-dropdown-menu">
+                            <a href="{{ url_for('auth.settings') }}" class="nav-dropdown-item">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M12 2a10 10 0 0 0 0 20 10 10 0 0 0 0-20zM12 8v4M12 16h.01"/></svg>
+                                Configurações
+                            </a>
+                            <a href="{{ url_for('auth.logout') }}" class="nav-dropdown-item nav-dropdown-logout">
+                                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+                                Sair
+                            </a>
+                        </div>
                     </div>
                     <a href="{{ url_for('auth.logout') }}" class="nav-btn nav-logout">Sair</a>
                 {% else %}
