@@ -1251,6 +1251,40 @@ a:hover {
     color: var(--pu-danger);
 }
 
+.items-section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.items-pending-title {
+    margin-bottom: 16px;
+}
+
+.completed-section {
+    margin-top: 40px;
+}
+
+.items-completed-title {
+    color: var(--pu-gray);
+    font-size: 16px;
+}
+
+.completed-section .todo-item {
+    background: var(--pu-bg);
+    border-color: var(--pu-border);
+    opacity: 0.8;
+    cursor: default;
+}
+
+.completed-section .drag-handle {
+    display: none;
+}
+
+.empty-completed {
+    opacity: 0.5;
+}
+
 .loading-items {
     text-align: center;
     padding: 40px;

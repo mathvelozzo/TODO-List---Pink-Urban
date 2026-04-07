@@ -48,10 +48,14 @@
     {% endif %}
 
     <div class="items-container">
-        <h3 class="items-section-title">Todos os itens</h3>
-        <div class="items-list" id="itemsList">
+        <h3 class="items-section-title items-pending-title">Itens pendentes</h3>
+        <div class="items-list" id="pendingList">
             <div class="loading-items"><div class="spinner"></div></div>
         </div>
+    </div>
+    <div class="items-container completed-section">
+        <h3 class="items-section-title items-completed-title">Itens concluidos</h3>
+        <div class="items-list" id="completedList"></div>
     </div>
 </div>
 
@@ -231,31 +235,40 @@ function copyListLink() {
 var allItems = [];
 
 function loadItems() {
-    var c = document.getElementById('itemsList');
+    var pending = document.getElementById('pendingList');
+    var completed = document.getElementById('completedList');
+    var pendingItems = [];
+    var completedItems = [];
+
     fetch('/api/list/' + LIST_ID + '/items')
     .then(function(r){
-        if (r.status === 403){ c.innerHTML='<div class="empty-state"><p>Acesso restrito.</p></div>'; return null; }
+        if (r.status === 403){
+            pending.innerHTML = '<div class="empty-state"><p>Acesso restrito.</p></div>';
+            return null;
+        }
         return r.json();
     })
     .then(function(items){
         if (!items) return;
         allItems = items;
-        c.innerHTML = '';
-
-        if (items.length === 0) {
-            c.innerHTML = '<div class="empty-state"><p>Nenhum item nesta lista ainda.</p></div>';
-            return;
-        }
+        pending.innerHTML = '';
+        completed.innerHTML = '';
 
         var today = new Date(); today.setHours(0,0,0,0);
 
         for (var i = 0; i < items.length; i++) {
             var item = items[i];
+            if (item.done) completedItems.push(item);
+            else pendingItems.push(item);
+
             var el = document.createElement('div');
             el.className = 'todo-item' + (item.done ? ' todo-item-done' : '');
             el.setAttribute('data-id', item.id);
-            el.setAttribute('draggable', 'true');
-            el.style.cursor = 'grab';
+
+            if (!item.done) {
+                el.setAttribute('draggable', 'true');
+                el.style.cursor = 'grab';
+            }
 
             var sc = '', sl = '';
             if (item.due_date) {
@@ -266,21 +279,24 @@ function loadItems() {
             }
             el.className += sc;
 
-            // REORDER BUTTONS with arrows
-            var reorderHtml =
-                '<span class="drag-handle">⋮⋮</span>';
-
+            var reorderHtml = item.done ? '' : '<span class="drag-handle">⋮⋮</span>';
             var checkHtml = '<span class="todo-check ' + (item.done ? 'checked' : '') + '" onclick="toggleItem(' + items[i].id + ')">' +
                 (item.done ? '<svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="3" d="M5 12l5 5L20 7"/></svg>' : '') +
                 '</span>';
 
+            var dateHtml = '<span class="todo-date-span" data-id="'+item.id+'" onclick="openDateModal('+item.id+')">'+(sl||'')+'</span>';
+
             el.innerHTML = reorderHtml + checkHtml +
                 '<span class="todo-text" data-id="'+item.id+'" onclick="editItemName(this)">' + escapeHtml(item.text) + '</span>' +
-                '<span class="todo-date-span" data-id="'+item.id+'" onclick="openDateModal('+item.id+')">'+(sl||'Sem data')+'</span>' +
+                dateHtml +
                 '<button class="todo-delete" onclick="deleteItem('+item.id+')">&times;</button>';
 
-            c.appendChild(el);
+            var container = item.done ? completed : pending;
+            container.appendChild(el);
         }
+
+        if (pendingItems.length === 0) pending.innerHTML = '<div class="empty-state"><p>Nenhum item pendente.</p></div>';
+        if (completedItems.length === 0) completed.innerHTML = '<div class="empty-state empty-completed"><p>Nenhum item concluido ainda.</p></div>';
     })
     .catch(function(){});
 }
@@ -313,7 +329,7 @@ function moveItem(id, dir) {
 }
 
 function saveOrder() {
-    var items = document.querySelectorAll('.todo-item');
+    var items = document.getElementById('pendingList').querySelectorAll('.todo-item');
     var order = [];
     for (var i = 0; i < items.length; i++) order.push(parseInt(items[i].getAttribute('data-id')));
     fetch('/api/list/' + LIST_ID + '/reorder', {
@@ -339,7 +355,7 @@ document.addEventListener('click', function(e) {
 
 // =================== DRAG AND DROP ===================
 (function() {
-    var c = document.getElementById('itemsList');
+    var c = document.getElementById('pendingList');
     var dragItem = null;
 
     c.addEventListener('dragstart', function(e) {
