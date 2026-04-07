@@ -2,8 +2,8 @@ from flask import Blueprint, render_template, redirect, url_for, request, jsonif
 from flask_login import current_user, login_required
 from app import db
 from models import TodoList, ListItem
-import uuid
 from datetime import datetime, date
+import uuid
 
 main_bp = Blueprint('main', __name__)
 
@@ -14,7 +14,7 @@ def index():
 @main_bp.route('/list/<slug>')
 def view_list(slug):
     todo_list = TodoList.query.filter_by(slug=slug).first_or_404()
-    is_owner = current_user.is_authenticated and current_user == todo_list.owner
+    is_owner = current_user.is_authenticated and current_user.id == todo_list.created_by
     return render_template('view_list.html', todo_list=todo_list, is_owner=is_owner)
 
 @main_bp.route('/create-list', methods=['POST'])
@@ -49,11 +49,16 @@ def get_items(list_id):
     todo_list = TodoList.query.get_or_404(list_id)
     if todo_list.created_by != current_user.id:
         return jsonify({'error': 'Acesso negado'}), 403
-    items = []
-    for i in todo_list.items:
+    items = TodoList.query.filter_by(id=list_id).first().items
+    items_sorted = sorted(items, key=lambda x: x.position)
+    items_data = []
+    for i in items_sorted:
         due = i.due_date.strftime('%d/%m/%Y') if i.due_date else None
-        items.append({'id': i.id, 'text': i.text, 'done': i.done, 'due_date': due})
-    return jsonify(items)
+        items_data.append({
+            'id': i.id, 'text': i.text, 'done': i.done,
+            'due_date': due, 'position': i.position
+        })
+    return jsonify(items_data)
 
 @main_bp.route('/api/list/<int:list_id>/add', methods=['POST'])
 @login_required
@@ -75,14 +80,13 @@ def add_item(list_id):
         except ValueError:
             pass
 
-    item = ListItem(text=text, list_id=list_id, due_date=due_date)
+    max_pos = db.session.query(db.func.max(ListItem.position)).filter_by(list_id=list_id).scalar() or -1
+    item = ListItem(text=text, list_id=list_id, due_date=due_date, position=max_pos + 1)
     db.session.add(item)
     db.session.commit()
 
     return jsonify({
-        'id': item.id,
-        'text': item.text,
-        'done': item.done,
+        'id': item.id, 'text': item.text, 'done': item.done,
         'due_date': due_date.strftime('%d/%m/%Y') if due_date else None
     }), 201
 
@@ -135,6 +139,23 @@ def set_due_date(item_id):
         'due_date': item.due_date.strftime('%d/%m/%Y') if item.due_date else None
     })
 
+@main_bp.route('/api/item/<int:item_id>/edit', methods=['PUT'])
+@login_required
+def edit_item(item_id):
+    item = ListItem.query.get_or_404(item_id)
+    if item.parent_list.created_by != current_user.id:
+        return jsonify({'error': 'Acesso negado'}), 403
+
+    data = request.get_json()
+    text = data.get('text', '').strip()
+    if not text:
+        return jsonify({'error': 'Texto e obrigatorio'}), 400
+
+    item.text = text
+    db.session.commit()
+
+    return jsonify({'id': item.id, 'text': item.text})
+
 @main_bp.route('/api/list/<int:list_id>/title', methods=['PUT'])
 @login_required
 def update_list_title(list_id):
@@ -163,3 +184,21 @@ def delete_list(list_id):
     db.session.commit()
 
     return jsonify({'message': 'Lista removida'}), 200
+
+@main_bp.route('/api/list/<int:list_id>/reorder', methods=['POST'])
+@login_required
+def reorder_items(list_id):
+    todo_list = TodoList.query.get_or_404(list_id)
+    if todo_list.created_by != current_user.id:
+        return jsonify({'error': 'Acesso negado'}), 403
+
+    data = request.get_json()
+    item_ids = data.get('order', [])
+
+    for pos, item_id in enumerate(item_ids):
+        item = ListItem.query.get(item_id)
+        if item and item.list_id == list_id:
+            item.position = pos
+
+    db.session.commit()
+    return jsonify({'message': 'Ordem atualizada'})

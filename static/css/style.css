@@ -1128,6 +1128,39 @@ a:hover {
     font-size: 15px;
     flex: 1;
     transition: all var(--transition-fast);
+    cursor: text;
+}
+
+.todo-text:hover {
+    color: var(--pu-pink);
+    text-decoration: underline;
+}
+
+.inline-edit-input {
+    width: 100%;
+    border: 2px solid var(--pu-pink);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 15px;
+    font-family: inherit;
+    background: var(--pu-white);
+    outline: none;
+}
+
+.inline-edit-input:focus {
+    box-shadow: 0 0 0 3px rgba(233, 30, 140, 0.1);
+}
+
+.todo-date-span {
+    font-size: 11px;
+    color: var(--pu-gray);
+    padding: 0 8px;
+    cursor: pointer;
+    transition: color var(--transition-fast);
+}
+
+.todo-date-span:hover {
+    color: var(--pu-pink);
 }
 
 .todo-delete {

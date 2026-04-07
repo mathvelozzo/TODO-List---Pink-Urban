@@ -175,6 +175,43 @@ function toggleItem(id) {
     fetch('/api/item/' + id + '/toggle', { method:'POST' }).then(function(r){ if(r.ok) loadItems(); });
 }
 
+function editItemName(el) {
+    var id = el.getAttribute('data-id');
+    var currentText = el.textContent;
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentText;
+    input.className = 'inline-edit-input';
+    el.textContent = '';
+    el.appendChild(input);
+    input.focus();
+    input.select();
+
+    function save() {
+        var newText = input.value.trim();
+        if (newText && newText !== currentText) {
+            fetch('/api/item/' + id + '/edit', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: newText })
+            });
+        }
+        loadItems();
+    }
+
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { save(); }
+        if (e.key === 'Escape') { loadItems(); }
+    });
+}
+
+function openDateModal(id) {
+    editingItemId = id;
+    var dm = document.getElementById('dateModal');
+    if (dm) dm.classList.add('date-modal-open');
+}
+
 function deleteItem(id) {
     fetch('/api/item/' + id, { method:'DELETE' }).then(function(r){ if(r.ok) loadItems(); });
 }
@@ -238,9 +275,8 @@ function loadItems() {
                 '</span>';
 
             el.innerHTML = reorderHtml + checkHtml +
-                '<span class="todo-text">' + escapeHtml(item.text) + '</span>' +
-                '<span class="todo-date-span">'+(sl||'')+'</span>' +
-                '<button class="todo-date-set" data-id="'+item.id+'"></button>' +
+                '<span class="todo-text" data-id="'+item.id+'" onclick="editItemName(this)">' + escapeHtml(item.text) + '</span>' +
+                '<span class="todo-date-span" data-id="'+item.id+'" onclick="openDateModal('+item.id+')">'+(sl||'Sem data')+'</span>' +
                 '<button class="todo-delete" onclick="deleteItem('+item.id+')">&times;</button>';
 
             c.appendChild(el);
