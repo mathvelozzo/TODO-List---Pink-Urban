@@ -16,6 +16,11 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default-secret')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///pink_urban.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SESSION_COOKIE_SECURE'] = False  # True em producao com HTTPS
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['REMEMBER_COOKIE_SECURE'] = False
+    app.config['REMEMBER_COOKIE_HTTPONLY'] = True
 
     # Init extensions
     db.init_app(app)
@@ -40,19 +45,21 @@ def create_app():
 
     # Create tables
     with app.app_context():
+        from models import User
         db.create_all()
-        # Create default admin
-        from models import User, TodoList, ListItem
         admin = User.query.filter_by(username='admin').first()
         if not admin:
+            import secrets
+            default_pass = secrets.token_urlsafe(12)
             admin = User(
                 username='admin',
                 email='admin@pinkurban.com',
                 role='admin',
                 is_approved=True
             )
-            admin.set_password('admin123')
+            admin.set_password(default_pass)
             db.session.add(admin)
             db.session.commit()
+            print(f'[!] Admin criado. Senha: {default_pass} — ALTERE NO PRIMEIRO ACESSO!')
 
     return app
